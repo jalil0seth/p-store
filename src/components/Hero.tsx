@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Shield, Sparkles, Check } from 'lucide-react';
-import { PARTNERS } from '../utils/constants';
 
 export default function Hero() {
   const benefits = [
@@ -12,8 +11,11 @@ export default function Hero() {
     'Best Price Guarantee'
   ];
 
+  const partners = [
+    'Adobe', 'Microsoft', 'Autodesk', 'Kaspersky', 'Miro', 'LinkedIn', 'Atlassian', 'Salesforce'];
+
   return (
-    <section className="relative pt-24 pb-16">
+    <section className="relative pt-16 pb-8">
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(0,123,255,0.1),transparent)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(99,102,241,0.1),transparent)]" />
@@ -25,7 +27,7 @@ export default function Hero() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary-50 to-primary-100 text-primary-600 mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary-50 to-primary-100 text-primary-600 mb-4"
           >
             <Sparkles className="w-4 h-4" />
             <span className="text-sm font-medium">Save up to 40% on Premium Software</span>
@@ -35,7 +37,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6"
+            className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-4"
           >
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-500 via-primary-600 to-primary-500">
               Premium Software
@@ -48,7 +50,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="text-xl text-gray-600 max-w-2xl mx-auto mb-8"
+            className="text-xl text-gray-600 max-w-2xl mx-auto mb-6"
           >
             Get instant access to premium software licenses at competitive prices, 
             backed by our official partnership guarantees.
@@ -58,7 +60,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8"
           >
             <Link 
               to="/products" 
@@ -81,7 +83,7 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="flex flex-wrap justify-center gap-6 mb-12"
+            className="flex flex-wrap justify-center gap-6 mb-8"
           >
             {benefits.map((benefit, index) => (
               <li key={index} className="flex items-center gap-2 text-gray-600">
@@ -96,25 +98,21 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="relative bg-white/60 backdrop-blur-xl rounded-2xl border border-gray-200/50 p-8 shadow-xl"
+            className="relative bg-white/60 backdrop-blur-xl rounded-2xl border border-gray-200/50 p-6 shadow-xl overflow-hidden"
           >
             <p className="text-sm text-gray-500 mb-6">Trusted by leading companies worldwide</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {PARTNERS.map((partner, i) => (
-                <motion.div
-                  key={partner.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 + 0.8 }}
-                  className="flex items-center justify-center group"
-                >
-                  <img 
-                    src={partner.logo} 
-                    alt={partner.name}
-                    className="h-12 w-auto grayscale group-hover:grayscale-0 transition-all duration-300"
-                  />
-                </motion.div>
-              ))}
+            
+            <div className="relative flex overflow-x-hidden">
+              <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+                {partners.map((partner, i) => (
+                  <span
+                    key={`${partner}-${i}`}
+                    className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent"
+                  >
+                    {partner}
+                  </span>
+                ))}
+              </div>
             </div>
           </motion.div>
         </div>

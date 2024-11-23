@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ShoppingCart, Search, User } from 'lucide-react';
+import { Menu, X, ShoppingCart, Search, User, ChevronDown } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
@@ -31,11 +31,27 @@ export default function Header() {
   }, [location]);
 
   const mainMenuItems = [
-    { label: 'Browse Software', href: '/products' },
-    { label: 'Solutions', href: '/solutions' },
+    { 
+      label: 'Products', 
+      href: '/products',
+      submenu: [
+        { label: 'Design Software', href: '/products?category=design' },
+        { label: 'Development Tools', href: '/products?category=development' },
+        { label: 'Security Solutions', href: '/products?category=security' },
+        { label: 'Business Apps', href: '/products?category=business' }
+      ]
+    },
+    { 
+      label: 'Solutions',
+      href: '/solutions',
+      submenu: [
+        { label: 'For Enterprise', href: '/solutions/enterprise' },
+        { label: 'For Startups', href: '/solutions/startups' },
+        { label: 'For Education', href: '/solutions/education' }
+      ]
+    },
     { label: 'Partners', href: '/partners' },
-    { label: 'About Us', href: '/about' },
-    { label: 'Contact Sales', href: '/contact' }
+    { label: 'Pricing', href: '/pricing' }
   ];
 
   return (
@@ -44,27 +60,47 @@ export default function Header() {
         isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
       }`}
     >
-      <nav className="container mx-auto px-4 h-16">
-        <div className="flex items-center justify-between h-full">
-          <Link 
-            to="/" 
-            className="text-xl font-bold tracking-tight hover:text-primary-500 transition-colors"
-          >
-            SoftwareStore
-          </Link>
-          
-          <div className="hidden md:flex items-center space-x-8">
-            {mainMenuItems.map((item) => (
-              <Link 
-                key={item.label}
-                to={item.href} 
-                className="nav-link"
-              >
-                {item.label}
-              </Link>
-            ))}
+      <div className="container-width mx-auto">
+        <nav className="h-16">
+          <div className="flex items-center justify-between h-full">
+            <Link 
+              to="/" 
+              className="text-xl font-bold tracking-tight hover:text-primary-500 transition-colors"
+            >
+              SoftwareStore
+            </Link>
             
-            <div className="flex items-center space-x-4">
+            <div className="hidden lg:flex items-center space-x-8">
+              {mainMenuItems.map((item) => (
+                <div key={item.label} className="relative group">
+                  <Link 
+                    to={item.href}
+                    className="flex items-center gap-1 nav-link py-2"
+                  >
+                    {item.label}
+                    {item.submenu && <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />}
+                  </Link>
+                  
+                  {item.submenu && (
+                    <div className="absolute top-full left-0 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200">
+                      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 p-2 min-w-[200px]">
+                        {item.submenu.map((subitem) => (
+                          <Link
+                            key={subitem.label}
+                            to={subitem.href}
+                            className="block px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-primary-500 dark:hover:text-primary-400 rounded-lg transition-colors"
+                          >
+                            {subitem.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden lg:flex items-center space-x-4">
               <button 
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
@@ -111,16 +147,62 @@ export default function Header() {
                 )}
               </button>
             </div>
-          </div>
 
-          <button 
-            className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            <button 
+              className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      {/* Search Overlay */}
+      <AnimatePresence>
+        {isSearchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </nav>
+            <div className="container-width mx-auto px-4 pt-20">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search software, categories, or brands..."
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus:border-primary-500 focus:ring-0 transition-colors"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => setIsSearchOpen(false)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Popular Searches</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {['Adobe Creative Cloud', 'Microsoft 365', 'AutoCAD', 'Antivirus'].map((term) => (
+                      <button
+                        key={term}
+                        className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-full text-sm hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -129,51 +211,33 @@ export default function Header() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="md:hidden bg-white dark:bg-gray-900 border-t dark:border-gray-800"
+            className="lg:hidden fixed inset-x-0 top-16 bg-white dark:bg-gray-900 border-t dark:border-gray-800 shadow-xl"
           >
-            <div className="container mx-auto px-4 py-4">
-              <div className="space-y-4">
+            <div className="container-width mx-auto p-4">
+              <div className="space-y-6">
                 {mainMenuItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    to={item.href}
-                    className="block nav-link py-2"
-                  >
-                    {item.label}
-                  </Link>
+                  <div key={item.label}>
+                    <Link
+                      to={item.href}
+                      className="block text-lg font-medium text-gray-900 dark:text-white mb-2"
+                    >
+                      {item.label}
+                    </Link>
+                    {item.submenu && (
+                      <div className="ml-4 space-y-2">
+                        {item.submenu.map((subitem) => (
+                          <Link
+                            key={subitem.label}
+                            to={subitem.href}
+                            className="block text-gray-600 dark:text-gray-400"
+                          >
+                            {subitem.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Search Overlay */}
-      <AnimatePresence>
-        {isSearchOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-          >
-            <div className="container mx-auto px-4 pt-20">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-4">
-                <div className="flex items-center space-x-4">
-                  <Search className="w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search software..."
-                    className="flex-1 bg-transparent border-none focus:ring-0 text-lg"
-                    autoFocus
-                  />
-                  <button
-                    onClick={() => setIsSearchOpen(false)}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
               </div>
             </div>
           </motion.div>
