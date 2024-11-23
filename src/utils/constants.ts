@@ -48,3 +48,70 @@ export const PARTNERS: Partner[] = [
     url: '/partners/linkedin'
   }
 ];
+
+export const CATEGORIES: Category[] = [
+  {
+    id: 'design',
+    name: 'Design Software',
+    description: 'Professional creative and design tools',
+    icon: 'Paintbrush',
+    slug: 'design',
+    productCount: 24
+  },
+  {
+    id: 'development',
+    name: 'Development Tools',
+    description: 'IDEs and development environments',
+    icon: 'Laptop',
+    slug: 'development',
+    productCount: 18
+  },
+  {
+    id: 'security',
+    name: 'Security Solutions',
+    description: 'Enterprise-grade security software',
+    icon: 'Shield',
+    slug: 'security',
+    productCount: 12
+  },
+  {
+    id: 'collaboration',
+    name: 'Collaboration Tools',
+    description: 'Team collaboration platforms',
+    icon: 'Users',
+    slug: 'collaboration',
+    productCount: 15
+  },
+  {
+    id: 'cloud',
+    name: 'Cloud Services',
+    description: 'Cloud infrastructure and hosting',
+    icon: 'Cloud',
+    slug: 'cloud',
+    productCount: 9
+  },
+  {
+    id: 'business',
+    name: 'Business Apps',
+    description: 'Enterprise business solutions',
+    icon: 'Building',
+    slug: 'business',
+    productCount: 21
+  },
+  {
+    id: 'data',
+    name: 'Data & Analytics',
+    description: 'Data management and analytics tools',
+    icon: 'Database',
+    slug: 'data',
+    productCount: 14
+  },
+  {
+    id: 'media',
+    name: 'Media Production',
+    description: 'Video and audio production suite',
+    icon: 'Video',
+    slug: 'media',
+    productCount: 16
+  }
+];

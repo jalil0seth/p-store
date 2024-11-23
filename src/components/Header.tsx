@@ -118,7 +118,6 @@ export default function Header() {
             </div>
 
             <div className="hidden lg:flex items-center space-x-4">
-              {/* Language Selector */}
               <div className="relative">
                 <button
                   onClick={() => setIsLanguageOpen(!isLanguageOpen)}
@@ -155,7 +154,6 @@ export default function Header() {
                 </AnimatePresence>
               </div>
 
-              {/* Currency Selector */}
               <div className="relative">
                 <button
                   onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
@@ -249,7 +247,6 @@ export default function Header() {
         </nav>
       </div>
 
-      {/* Search Overlay */}
       <AnimatePresence>
         {isSearchOpen && (
           <motion.div
@@ -295,7 +292,6 @@ export default function Header() {
         )}
       </AnimatePresence>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 

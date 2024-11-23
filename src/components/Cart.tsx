@@ -201,6 +201,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
             className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-xl z-50"
+            style={{ position: 'fixed', top: 0, bottom: 0, right: 0 }}
           >
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between p-4 border-b">
