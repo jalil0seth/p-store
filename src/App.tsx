@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import Header from './components/Header';
@@ -11,18 +11,28 @@ import DashboardPage from './pages/DashboardPage';
 import ProductPage from './pages/ProductPage';
 import ProductsPage from './pages/ProductsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import Cart from './components/Cart';
 
 function App() {
   const { theme } = useTheme();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.className = theme;
   }, [theme]);
 
+  const handleOpenCart = () => {
+    setIsCartOpen(true);
+  };
+
+  const handleCloseCart = () => {
+    setIsCartOpen(false);
+  };
+
   return (
     <Router>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-        <Header />
+        <Header onOpenCart={handleOpenCart} />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/signin" element={<SignInPage />} />
@@ -38,8 +48,9 @@ function App() {
           />
         </Routes>
         <Footer />
-        <MobileCTA />
+        <MobileCTA onOpenCart={handleOpenCart} />
         <FloatingElements />
+        <Cart isOpen={isCartOpen} onClose={handleCloseCart} />
       </div>
     </Router>
   );
