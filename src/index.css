@@ -48,7 +48,7 @@
   }
 
   .container-width {
-    @apply max-w-[70rem] mx-auto px-4;
+    @apply max-w-[80rem] mx-auto px-4;
   }
 }
 
@@ -67,7 +67,7 @@
 }
 
 .dark {
-  @apply bg-gray-900 text-white;
+  @apply bg-gray-600 text-white;
 }
 
 /* Custom Scrollbar */

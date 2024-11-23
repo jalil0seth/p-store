@@ -1,33 +1,39 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import './BrandBar.css';
+
+const partners = [
+  'Adobe', 'Microsoft', 'Autodesk', 'Kaspersky', 'Miro', 'LinkedIn', 'Atlassian', 'Salesforce'
+];
 
 export default function BrandBar() {
-  const brands = ['Adobe', 'Autodesk', 'Microsoft', 'Atlassian'];
-
   return (
-    <div className="relative -mt-20 mb-20">
-      <div className="max-w-[60rem] mx-auto px-4">
+    <div className="relative -mt-20 mb-12">
+      <div className="max-w-[80rem] mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="relative bg-white/60 backdrop-blur-xl rounded-2xl border border-gray-200/50 p-8 shadow-xl"
+          transition={{ duration: 0.3 }}
+          className="relative bg-white/80 backdrop-blur-md rounded-3xl border border-gray-200/60 p-8 shadow-lg hover:shadow-xl transition-all duration-300"
         >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {brands.map((brand, i) => (
-              <motion.div
-                key={brand}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 + 0.5, duration: 0.5 }}
-                className="flex items-center justify-center group"
-              >
-                <span className="text-xl font-semibold bg-gradient-to-r from-gray-400 to-gray-600 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-indigo-600 transition-all duration-300">
-                  {brand}
+          <p className="text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-6 text-center">
+            Trusted by leading companies worldwide
+          </p>
+          
+          <div className="marquee-container">
+            <div className="animate-marquee whitespace-nowrap flex items-center gap-12">
+              {[...partners, ...partners].map((partner, i) => (
+                <span
+                  key={`${partner}-${i}`}
+                  className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 
+                    dark:from-blue-400 dark:to-indigo-500 bg-clip-text text-transparent 
+                    transition-all duration-300"
+                >
+                  {partner}
                 </span>
-              </motion.div>
-            ))}
+              ))}
+            </div>
           </div>
         </motion.div>
       </div>

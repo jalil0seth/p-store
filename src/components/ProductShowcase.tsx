@@ -11,7 +11,7 @@ export default function ProductShowcase() {
       id: 'adobe-cc',
       name: 'Adobe Creative Cloud',
       description: 'Complete collection of 20+ creative desktop and mobile apps',
-      image: 'https://images.unsplash.com/photo-1562577309-4932fdd64cd1?auto=format&fit=crop&w=800&h=400',
+      image: 'https://phototrend.fr/wp-content/uploads/2024/05/offre-adobe-creative-cloud-mai-2024-770x384.jpg',
       price: 54.99,
       rating: 4.9,
       reviews: 2547
@@ -38,7 +38,7 @@ export default function ProductShowcase() {
 
   return (
     <section id="products" className="py-20">
-      <div className="max-w-[60rem] mx-auto px-4">
+      <div className="max-w-[80rem] mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

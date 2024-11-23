@@ -6,7 +6,7 @@ import type { Partner } from '../types';
 export default function PartnersGrid() {
   return (
     <section className="py-20 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-[60rem] mx-auto px-4">
+      <div className="max-w-[80rem] mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

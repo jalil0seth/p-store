@@ -31,7 +31,7 @@ export default function Testimonials() {
     <section className="py-32 relative overflow-hidden bg-gradient-to-b from-white to-gray-50">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(99,102,241,0.05),transparent)]" />
       
-      <div className="max-w-[60rem] mx-auto px-4 relative">
+      <div className="max-w-[80rem] mx-auto px-4 relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

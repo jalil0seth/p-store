@@ -192,7 +192,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]"
             onClick={onClose}
           />
           <motion.div
@@ -200,8 +200,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.3 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-xl z-50"
-            style={{ position: 'fixed', top: 0, bottom: 0, right: 0 }}
+            className="fixed right-0 top-0 h-screen w-full max-w-md bg-white shadow-xl z-[70]"
           >
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between p-4 border-b">
@@ -224,7 +223,9 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 </button>
               </div>
 
-              {renderStep()}
+              <div className="flex-1 overflow-y-auto">
+                {renderStep()}
+              </div>
 
               <div className="border-t p-4 space-y-4">
                 <div className="flex items-center justify-between text-lg font-bold">
