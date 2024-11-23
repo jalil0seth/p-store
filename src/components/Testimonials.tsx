@@ -1,5 +1,6 @@
 import React from 'react';
-import { Star } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Star, Quote } from 'lucide-react';
 
 export default function Testimonials() {
   const testimonials = [
@@ -27,41 +28,62 @@ export default function Testimonials() {
   ];
 
   return (
-    <section id="testimonials" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Trusted by Leading Teams
+    <section className="py-32 relative overflow-hidden bg-gradient-to-b from-white to-gray-50">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(99,102,241,0.05),transparent)]" />
+      
+      <div className="max-w-[60rem] mx-auto px-4 relative">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-20"
+        >
+          <h2 className="text-4xl font-bold mb-6">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              Trusted by Leading Teams
+            </span>
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            See what our customers have to say about DevForge
+            See what our customers have to say about our platform
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <div 
+            <motion.div 
               key={index}
-              className="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition-shadow"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
+              className="relative group"
             >
-              <div className="flex items-center space-x-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-600 mb-6">"{testimonial.content}"</p>
-              <div className="flex items-center space-x-4">
-                <img 
-                  src={testimonial.image} 
-                  alt={testimonial.name}
-                  className="w-12 h-12 rounded-full"
-                />
-                <div>
-                  <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                  <p className="text-gray-600 text-sm">{testimonial.role}</p>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+              <div className="relative bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100">
+                <Quote className="w-10 h-10 text-blue-100 mb-4" />
+                
+                <div className="flex items-center space-x-1 mb-4">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+                
+                <p className="text-gray-600 mb-6 italic">"{testimonial.content}"</p>
+                
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src={testimonial.image} 
+                    alt={testimonial.name}
+                    className="w-12 h-12 rounded-full ring-2 ring-blue-50"
+                  />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                    <p className="text-gray-600 text-sm">{testimonial.role}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

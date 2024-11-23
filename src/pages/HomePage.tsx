@@ -1,18 +1,18 @@
 import React from 'react';
 import Hero from '../components/Hero';
-import ProductGrid from '../components/ProductGrid';
+import BrandBar from '../components/BrandBar';
+import ProductShowcase from '../components/ProductShowcase';
 import Features from '../components/Features';
 import Testimonials from '../components/Testimonials';
-import CreativeCloud from '../components/CreativeCloud';
 
 export default function HomePage() {
   return (
-    <main>
+    <main className="overflow-hidden">
       <Hero />
-      <ProductGrid />
+      <BrandBar />
+      <ProductShowcase />
       <Features />
       <Testimonials />
-      <CreativeCloud />
     </main>
   );
 }

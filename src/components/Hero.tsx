@@ -1,80 +1,86 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Shield } from 'lucide-react';
 
 export default function Hero() {
   return (
-    <div className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-dots bg-dots-lg opacity-20" />
-      <div className="absolute inset-0 bg-gradient-radial from-blue-50 to-transparent opacity-60" />
-      
-      <div className="container relative">
+    <section className="relative min-h-[90vh] flex items-center">
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(59,130,246,0.1),transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(99,102,241,0.1),transparent)]" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
+      </div>
+
+      <div className="relative max-w-[60rem] mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto text-center"
+          transition={{ duration: 0.8 }}
+          className="text-center"
         >
-          <div className="inline-flex items-center space-x-2 px-4 py-2 mb-8 rounded-full bg-white/50 backdrop-blur-sm border border-blue-100 hover-lift">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">Premium Software Provider</span>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 mb-8 border border-blue-100/50 shadow-sm"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span className="text-sm font-medium">Premium Software Provider</span>
+          </motion.div>
 
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
-            <span className="gradient-text">Professional Software</span>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-8"
+          >
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600">
+              Professional Software
+            </span>
             <br />
-            <span className="text-gray-900">For Modern Teams</span>
-          </h1>
+            <span className="mt-2 block">For Modern Teams</span>
+          </motion.h1>
 
-          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+            className="text-xl text-gray-600 max-w-2xl mx-auto mb-12"
+          >
             Get instant access to premium software licenses at competitive prices, 
             backed by our official partnership guarantees.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <motion.a 
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <a 
               href="#products" 
-              className="btn btn-primary group w-full sm:w-auto text-lg"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="group relative inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 text-lg font-medium text-white transition-all hover:from-blue-700 hover:to-indigo-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 w-full sm:w-auto"
             >
               Browse Software
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </motion.a>
-            <a 
-              href="#contact" 
-              className="btn btn-secondary w-full sm:w-auto text-lg"
-            >
-              Contact Sales
+              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 opacity-25 blur-xl transition-all group-hover:opacity-50" />
             </a>
-          </div>
+            <a 
+              href="#contact"
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-lg font-medium text-gray-900 shadow-md transition-all hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 w-full sm:w-auto border border-gray-200"
+            >
+              <Shield className="w-5 h-5 transition-transform group-hover:scale-110" />
+              Contact Sales
+              <div className="absolute inset-0 rounded-full bg-gray-100 opacity-0 blur-xl transition-all group-hover:opacity-50" />
+            </a>
+          </motion.div>
 
-          {/* Floating Cards Effect */}
-          <div className="relative mt-20">
-            <div className="absolute inset-0 bg-gradient-radial from-blue-50 to-transparent opacity-60" />
-            <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto">
-              {[1, 2, 3].map((i) => (
-                <motion.div
-                  key={i}
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.2, duration: 0.5 }}
-                  className="glass-card p-6 rounded-2xl animate-float"
-                  style={{ animationDelay: `${i * 0.2}s` }}
-                >
-                  <img
-                    src={`https://images.unsplash.com/photo-${1550000000000 + i}?auto=format&fit=crop&w=300&h=200`}
-                    alt="Software Preview"
-                    className="w-full h-32 object-cover rounded-lg mb-4"
-                  />
-                  <div className="h-2 w-20 bg-gradient-to-r from-blue-200 to-blue-100 rounded-full" />
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          {/* Floating Elements */}
+          <div className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-indigo-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
         </motion.div>
       </div>
-    </div>
+    </section>
   );
 }
