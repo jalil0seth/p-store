@@ -36,8 +36,8 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/signin" element={<SignInPage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/product/:id" element={<ProductPage />} />
+          <Route path="/products" element={<ProductsPage onOpenCart={handleOpenCart} />} />
+          <Route path="/product/:id" element={<ProductPage onOpenCart={handleOpenCart} />} />
           <Route
             path="/dashboard"
             element={

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Filter, Search, ArrowRight, ShoppingCart, Star, Tag } from 'lucide-react';
@@ -127,13 +127,34 @@ const SORT_OPTIONS = [
   { value: 'rating', label: 'Highest Rated' }
 ];
 
-export default function ProductsPage() {
-  const [searchParams] = useSearchParams();
+interface ProductsPageProps {
+  onOpenCart: () => void;
+}
+
+export default function ProductsPage({ onOpenCart }: ProductsPageProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
   const [sortBy, setSortBy] = useState('popular');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const addItem = useCartStore((state) => state.addItem);
+
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [searchParams]);
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    if (category === 'All') {
+      searchParams.delete('category');
+    } else {
+      searchParams.set('category', category);
+    }
+    setSearchParams(searchParams);
+  };
 
   const itemsPerPage = 8;
 
@@ -158,6 +179,11 @@ export default function ProductsPage() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  const handleAddToCart = (product: any) => {
+    addItem(product);
+    onOpenCart(); // Open cart after adding item
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -199,7 +225,7 @@ export default function ProductsPage() {
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none"
                 >
                   {CATEGORIES.map((category) => (
@@ -284,7 +310,7 @@ export default function ProductsPage() {
 
                   <div className="grid grid-cols-4 gap-2">
                     <button
-                      onClick={() => addItem(product)}
+                      onClick={() => handleAddToCart(product)}
                       className="col-span-3 btn btn-primary"
                     >
                       <ShoppingCart className="w-4 h-4" />

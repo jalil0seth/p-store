@@ -1,22 +1,37 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Shield, Award, Clock, Check, Star, ArrowRight, Box, Zap, Globe } from 'lucide-react';
+import { 
+  ShoppingCart, Shield, Award, Clock, Check, Star, 
+  ArrowRight, Box, Zap, Globe, ChevronLeft, ChevronRight 
+} from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 
-export default function ProductPage() {
+interface ProductPageProps {
+  onOpenCart: () => void;
+}
+
+export default function ProductPage({ onOpenCart }: ProductPageProps) {
   const { id } = useParams();
   const addItem = useCartStore((state) => state.addItem);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
   const [activeTab, setActiveTab] = useState('overview');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // In a real app, fetch product data based on ID
+  const productImages = [
+    'https://5.imimg.com/data5/SELLER/Default/2023/12/372690413/AN/EO/SN/3538534/adobe-creative-cloud-software-2023-500x500.jpg',
+    'https://www.adobe.com/content/dam/cc/us/en/creative-cloud/cc_express_appicon_256.svg',
+    'https://www.adobe.com/content/dam/cc/icons/photoshop.svg',
+    'https://www.adobe.com/content/dam/cc/icons/illustrator.svg',
+    'https://www.adobe.com/content/dam/cc/icons/indesign.svg',
+    'https://www.adobe.com/content/dam/cc/icons/premiere.svg'
+  ];
+
   const product = {
     id: id || 'adobe-cc',
     name: 'Adobe Creative Cloud',
     description: 'Complete collection of 20+ creative desktop and mobile apps including Photoshop, Illustrator, InDesign, Premiere Pro, and more.',
     price: { monthly: 54.99, annual: 49.99 },
-    image: 'https://5.imimg.com/data5/SELLER/Default/2023/12/372690413/AN/EO/SN/3538534/adobe-creative-cloud-software-2023-500x500.jpg',
     rating: 4.9,
     reviews: 2547,
     features: [
@@ -41,6 +56,27 @@ export default function ProductPage() {
     }
   };
 
+  const handleAddToCart = () => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price[selectedPlan]
+    });
+    onOpenCart();
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === productImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? productImages.length - 1 : prev - 1
+    );
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'features', label: 'Features' },
@@ -57,20 +93,71 @@ export default function ProductPage() {
         >
           {/* Hero Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-
-          <motion.div
+            {/* Image Gallery */}
+            <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
               className="relative group"
             >
-              <div className="overflow-hidden rounded-2xl shadow-lg">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-[500px] object-cover transform transition-transform duration-700 group-hover:scale-105"
+              <div className="relative overflow-hidden rounded-2xl shadow-lg aspect-square">
+                <motion.img
+                  key={currentImageIndex}
+                  src={productImages[currentImageIndex]}
+                  alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white text-gray-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white text-gray-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  {productImages.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        currentImageIndex === index 
+                          ? 'bg-white w-4' 
+                          : 'bg-white/50 hover:bg-white/80'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-6 gap-2">
+                {productImages.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`relative rounded-lg overflow-hidden aspect-square ${
+                      currentImageIndex === index 
+                        ? 'ring-2 ring-primary-500' 
+                        : 'hover:ring-2 hover:ring-primary-300'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
               </div>
             </motion.div>
             
@@ -99,7 +186,7 @@ export default function ProductPage() {
                 {['monthly', 'annual'].map((plan) => (
                   <button
                     key={plan}
-                    onClick={() => setSelectedPlan(plan)}
+                    onClick={() => setSelectedPlan(plan as 'monthly' | 'annual')}
                     className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                       selectedPlan === plan
                         ? 'bg-white text-primary-600 shadow-sm'
@@ -122,11 +209,7 @@ export default function ProductPage() {
                   )}
                 </div>
                 <button
-                  onClick={() => addItem({ 
-                    id: product.id, 
-                    name: product.name, 
-                    price: product.price[selectedPlan] 
-                  })}
+                  onClick={handleAddToCart}
                   className="flex-1 btn btn-primary py-4"
                 >
                   <ShoppingCart className="w-5 h-5 mr-2" />
@@ -147,7 +230,6 @@ export default function ProductPage() {
                 ))}
               </div>
             </motion.div>
-
           </div>
 
           {/* Benefits Section */}
