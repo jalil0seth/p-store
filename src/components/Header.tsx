@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ShoppingCart, Search, User, ChevronDown } from 'lucide-react';
+import { Menu, X, ShoppingCart, Search, User, ChevronDown, Globe, CreditCard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
@@ -7,11 +7,30 @@ import { useAuthStore } from '../store/authStore';
 import ThemeToggle from './ThemeToggle';
 import Cart from './Cart';
 
+const LANGUAGES = [
+  { code: 'en', name: 'English', flag: '🇺🇸' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+];
+
+const CURRENCIES = [
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'GBP', symbol: '£', name: 'British Pound' },
+  { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+];
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(LANGUAGES[0]);
+  const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
+  
   const items = useCartStore((state) => state.items);
   const { isAuthenticated, user, logout } = useAuthStore();
   const location = useLocation();
@@ -55,11 +74,9 @@ export default function Header() {
   ];
 
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-        isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
-      }`}
-    >
+    <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+      isScrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm' : 'bg-transparent'
+    }`}>
       <div className="container-width mx-auto">
         <nav className="h-16">
           <div className="flex items-center justify-between h-full">
@@ -101,6 +118,80 @@ export default function Header() {
             </div>
 
             <div className="hidden lg:flex items-center space-x-4">
+              {/* Language Selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsLanguageOpen(!isLanguageOpen)}
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                >
+                  <Globe className="w-5 h-5" />
+                  <span>{selectedLanguage.flag}</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                
+                <AnimatePresence>
+                  {isLanguageOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 py-2 min-w-[160px] z-50"
+                    >
+                      {LANGUAGES.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => {
+                            setSelectedLanguage(lang);
+                            setIsLanguageOpen(false);
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <span>{lang.flag}</span>
+                          <span>{lang.name}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Currency Selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
+                  className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                >
+                  <CreditCard className="w-5 h-5" />
+                  <span>{selectedCurrency.symbol}</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                
+                <AnimatePresence>
+                  {isCurrencyOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 py-2 min-w-[160px] z-50"
+                    >
+                      {CURRENCIES.map((currency) => (
+                        <button
+                          key={currency.code}
+                          onClick={() => {
+                            setSelectedCurrency(currency);
+                            setIsCurrencyOpen(false);
+                          }}
+                          className="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <span>{currency.symbol}</span>
+                          <span>{currency.name}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <button 
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"

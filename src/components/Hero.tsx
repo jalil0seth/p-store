@@ -12,7 +12,8 @@ export default function Hero() {
   ];
 
   const partners = [
-    'Adobe', 'Microsoft', 'Autodesk', 'Kaspersky', 'Miro', 'LinkedIn', 'Atlassian', 'Salesforce'];
+    'Adobe', 'Microsoft', 'Autodesk', 'Kaspersky', 'Miro', 'LinkedIn', 'Atlassian', 'Salesforce'
+  ];
 
   return (
     <section className="relative pt-16 pb-8">
@@ -93,21 +94,22 @@ export default function Hero() {
             ))}
           </motion.ul>
 
-          {/* Trusted Partners */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
             className="relative bg-white/60 backdrop-blur-xl rounded-2xl border border-gray-200/50 p-6 shadow-xl overflow-hidden"
           >
-            <p className="text-sm text-gray-500 mb-6">Trusted by leading companies worldwide</p>
+            <p className="text-sm font-medium bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-8">
+              Trusted by leading companies worldwide
+            </p>
             
-            <div className="relative flex overflow-x-hidden">
-              <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
-                {partners.map((partner, i) => (
+            <div className="flex overflow-hidden">
+              <div className="animate-marquee whitespace-nowrap flex items-center gap-12">
+                {[...partners, ...partners].map((partner, i) => (
                   <span
                     key={`${partner}-${i}`}
-                    className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent"
+                    className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-blue-400 dark:to-indigo-500 bg-clip-text text-transparent transition-all duration-300 hover:from-blue-600 hover:to-indigo-600"
                   >
                     {partner}
                   </span>
