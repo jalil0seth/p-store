@@ -10,6 +10,7 @@ import SignInPage from './pages/SignInPage';
 import DashboardPage from './pages/DashboardPage';
 import ProductPage from './pages/ProductPage';
 import ProductsPage from './pages/ProductsPage';
+import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Cart from './components/Cart';
 
@@ -46,6 +47,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
         <Footer />
         <MobileCTA onOpenCart={handleOpenCart} />
@@ -55,5 +64,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;
