@@ -14,7 +14,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Cart from './components/Cart';
 
-function App() {
+export function App() {
   const { theme } = useTheme();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -64,3 +64,5 @@ function App() {
     </Router>
   );
 }
+
+export default App;
