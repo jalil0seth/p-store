@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
+import { usePocketBase } from './hooks/usePocketBase';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import MobileCTA from './components/MobileCTA';
@@ -16,6 +17,7 @@ import Cart from './components/Cart';
 
 export function App() {
   const { theme } = useTheme();
+  const { isInitialized, isLoading, error } = usePocketBase();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
@@ -29,6 +31,30 @@ export function App() {
   const handleCloseCart = () => {
     setIsCartOpen(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-red-600">Error: {error.message}</div>
+      </div>
+    );
+  }
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Failed to initialize application</div>
+      </div>
+    );
+  }
 
   return (
     <Router>
