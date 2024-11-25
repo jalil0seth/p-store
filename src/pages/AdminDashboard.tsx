@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Settings, Package, Users, Star, Layout } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import AdminConfig from '../components/admin/AdminConfig';
@@ -9,14 +9,8 @@ import AdminTestimonials from '../components/admin/AdminTestimonials';
 import AdminFeatures from '../components/admin/AdminFeatures';
 
 export default function AdminDashboard() {
-  const location = useLocation();
-  const hash = location.hash.replace('#', '') || 'config';
-  const [activeTab, setActiveTab] = useState(hash);
+  const [activeTab, setActiveTab] = useState('config');
   const { isAdmin } = useAuthStore();
-
-  useEffect(() => {
-    setActiveTab(hash);
-  }, [hash]);
 
   if (!isAdmin) {
     return <Navigate to="/" replace />;
@@ -53,9 +47,9 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center space-x-8 overflow-x-auto">
             {tabs.map((tab) => (
-              <a
+              <button
                 key={tab.id}
-                href={`#${tab.id}`}
+                onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 py-4 border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-primary-500 text-primary-600'
@@ -64,7 +58,7 @@ export default function AdminDashboard() {
               >
                 <tab.icon className="w-5 h-5" />
                 <span>{tab.label}</span>
-              </a>
+              </button>
             ))}
           </div>
         </div>

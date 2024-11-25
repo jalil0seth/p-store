@@ -25,15 +25,26 @@ export const useAuthStore = create<AuthStore>()(
       isAdmin: false,
       login: async (email: string, password: string) => {
         try {
-          const authData = await pb.collection('users').authWithPassword(email, password);
+          // Initialize PocketBase if not already initialized
+          if (!pb.authStore.isValid) {
+            await pb.collection('users').authWithPassword(email, password);
+          }
+
+          const authData = pb.authStore.model;
+          
+          if (!authData) {
+            throw new Error('Authentication failed');
+          }
+
           const user = {
-            id: authData.record.id,
-            email: authData.record.email,
-            name: authData.record.name,
-            role: authData.record.role || 'user'
+            id: authData.id,
+            email: authData.email,
+            name: authData.name || email.split('@')[0],
+            role: authData.role || 'user'
           };
+
           set({ 
-            user, 
+            user,
             isAuthenticated: true,
             isAdmin: user.role === 'admin'
           });
@@ -44,11 +55,20 @@ export const useAuthStore = create<AuthStore>()(
       },
       logout: () => {
         pb.authStore.clear();
-        set({ user: null, isAuthenticated: false, isAdmin: false });
+        set({ 
+          user: null, 
+          isAuthenticated: false, 
+          isAdmin: false 
+        });
       },
     }),
     {
       name: 'auth-storage',
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+        isAdmin: state.isAdmin
+      })
     }
   )
 );

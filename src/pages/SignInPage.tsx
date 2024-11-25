@@ -21,7 +21,7 @@ export default function SignInPage() {
       await login(email, password);
       navigate(isAdmin ? '/admin' : '/dashboard');
     } catch (error) {
-      setError('Invalid email or password');
+      setError('Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }
