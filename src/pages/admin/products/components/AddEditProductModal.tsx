@@ -21,10 +21,10 @@ interface AddEditProductModalProps {
 }
 
 interface Variant {
+  id: string;
   name: string;
   price: number;
   original_price: number;
-  slug: string;
   available: boolean;
 }
 
@@ -44,7 +44,6 @@ const defaultFeatures: ProductFeatures = {
 
 const defaultProduct: Partial<Product> = {
   name: '',
-  slug: '',
   description: '',
   type: '',
   category: '',
@@ -57,6 +56,10 @@ const defaultProduct: Partial<Product> = {
   isAvailable: true,
   features: JSON.stringify(defaultFeatures)
 };
+
+function generateId(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
   product,
@@ -86,10 +89,16 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
         });
         try {
           const parsedVariants = JSON.parse(product.variants || '[]');
+          if (!Array.isArray(parsedVariants)) {
+            console.error('Variants is not an array:', parsedVariants);
+            setVariants([]);
+          } else {
+            setVariants(parsedVariants);
+          }
           const parsedFeatures = JSON.parse(product.features || JSON.stringify(defaultFeatures));
-          setVariants(parsedVariants);
           setFeatures(parsedFeatures);
-        } catch {
+        } catch (error) {
+          console.error('Error parsing variants or features:', error);
           setVariants([]);
           setFeatures(defaultFeatures);
         }
@@ -104,32 +113,58 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
     }
   }, [open, product]);
 
-  const handleVariantSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVariantSubmit = () => {
     if (!editingVariant) return;
 
     const newVariants = [...variants];
     if (editingVariantIndex !== null) {
       newVariants[editingVariantIndex] = editingVariant;
     } else {
-      newVariants.push(editingVariant);
+      // Ensure new variant has an ID
+      newVariants.push({
+        ...editingVariant,
+        id: editingVariant.id || generateId()
+      });
     }
 
     setVariants(newVariants);
-    setFormData(prev => ({ ...prev, variants: JSON.stringify(newVariants, null, 2) }));
+    setFormData(prev => ({ ...prev, variants: JSON.stringify(newVariants) }));
     setEditingVariant(null);
     setEditingVariantIndex(null);
+  };
+
+  const handleVariantChange = (field: keyof Variant, value: string | number | boolean) => {
+    if (!editingVariant) return;
+    setEditingVariant(prev => ({
+      ...prev,
+      [field]: field === 'price' || field === 'original_price' ? Number(value) : value
+    }));
+  };
+
+  const handleAddVariant = () => {
+    setEditingVariant({
+      id: generateId(),
+      name: '',
+      price: 0,
+      original_price: 0,
+      available: true
+    });
+    setEditingVariantIndex(null);
+  };
+
+  const handleEditVariant = (index: number) => {
+    const variant = variants[index];
+    setEditingVariant({
+      ...variant,
+      id: variant.id || generateId()
+    });
+    setEditingVariantIndex(index);
   };
 
   const handleVariantDelete = (index: number) => {
     const newVariants = variants.filter((_, i) => i !== index);
     setVariants(newVariants);
-    setFormData(prev => ({ ...prev, variants: JSON.stringify(newVariants, null, 2) }));
-  };
-
-  const handleEditVariant = (index: number) => {
-    setEditingVariant(variants[index]);
-    setEditingVariantIndex(index);
+    setFormData(prev => ({ ...prev, variants: JSON.stringify(newVariants) }));
   };
 
   const handleGenerateContent = async () => {
@@ -145,18 +180,26 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
       setFormData(prev => ({
         ...prev,
         brand: result.brand,
-        description: result.detailed_description,
+        description: result.description,
         category: result.category,
-        type: result.subcategory,
-        metadata: JSON.stringify({
-          sales_pitch: result.metadata.sales_pitch,
-          bullet_points: result.metadata.bullet_points
-        }),
-        variants: JSON.stringify(result.variants)
+        type: result.type,
+        metadata: result.metadata,
+        variants: result.variants
       }));
 
-      // Update variants state
-      setVariants(result.variants);
+      try {
+        // Parse variants from the result
+        const parsedVariants = JSON.parse(result.variants);
+        if (Array.isArray(parsedVariants)) {
+          setVariants(parsedVariants);
+        } else {
+          console.error('Generated variants is not an array:', parsedVariants);
+          setVariants([]);
+        }
+      } catch (error) {
+        console.error('Error parsing generated variants:', error);
+        setVariants([]);
+      }
       
       toast.success("Product content generated successfully!");
     } catch (error) {
@@ -172,8 +215,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
     validateJson(value, field);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     
     const imagesValid = validateJson(formData.images || '[]', 'images');
     const variantsValid = validateJson(formData.variants || '[]', 'variants');
@@ -183,7 +225,13 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
       return;
     }
 
-    await onSave(formData);
+    const updatedFormData = {
+      ...formData,
+      variants: JSON.stringify(variants),
+      features: JSON.stringify(features)
+    };
+    await onSave(updatedFormData);
+    onOpenChange(false);
   };
 
   const imagesToText = (jsonStr: string): string => {
@@ -219,7 +267,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
   };
 
   const handleInputChange = (field: keyof typeof formData, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ ...prev, [field]: value ?? '' }));
   };
 
   return (
@@ -228,31 +276,19 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
         <DialogHeader className="border-b pb-4">
           <DialogTitle className="text-xl font-semibold text-gray-900">{product ? 'Edit' : 'Add'} Product</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-lg">
-              <TabsTrigger 
-                value="basic" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-              >
+              <TabsTrigger value="basic" className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm">
                 Basic Info
               </TabsTrigger>
-              <TabsTrigger 
-                value="media" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-              >
+              <TabsTrigger value="media" className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm">
                 Media
               </TabsTrigger>
-              <TabsTrigger 
-                value="variants" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-              >
+              <TabsTrigger value="variants" className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm">
                 Variants
               </TabsTrigger>
-              <TabsTrigger 
-                value="availability" 
-                className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-              >
+              <TabsTrigger value="availability" className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm">
                 Availability
               </TabsTrigger>
             </TabsList>
@@ -280,7 +316,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                     </div>
                     <Input
                       id="name"
-                      value={formData.name}
+                      value={formData.name ?? ''}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       placeholder="Enter product name"
                       className="w-full"
@@ -293,7 +329,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                     </Label>
                     <Textarea
                       id="description"
-                      value={formData.description}
+                      value={formData.description ?? ''}
                       onChange={(e) => handleInputChange('description', e.target.value)}
                       placeholder="Enter product description"
                       className="h-[200px] resize-none"
@@ -310,7 +346,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                     <div className="space-y-4">
                       <Input
                         id="image"
-                        value={formData.image}
+                        value={formData.image ?? ''}
                         onChange={(e) => handleInputChange('image', e.target.value)}
                         placeholder="Enter image URL"
                         className="w-full"
@@ -333,7 +369,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                     </Label>
                     <Input
                       id="brand"
-                      value={formData.brand}
+                      value={formData.brand ?? ''}
                       onChange={(e) => handleInputChange('brand', e.target.value)}
                       placeholder="Enter brand name"
                     />
@@ -346,7 +382,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                       </Label>
                       <Input
                         id="category"
-                        value={formData.category}
+                        value={formData.category ?? ''}
                         onChange={(e) => handleInputChange('category', e.target.value)}
                         placeholder="Enter category"
                       />
@@ -358,7 +394,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                       </Label>
                       <Input
                         id="type"
-                        value={formData.type}
+                        value={formData.type ?? ''}
                         onChange={(e) => handleInputChange('type', e.target.value)}
                         placeholder="Enter type"
                       />
@@ -426,56 +462,97 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
               </div>
             </TabsContent>
 
-            <TabsContent value="variants" className="space-y-4">
+            <TabsContent value="variants" className="space-y-6 pt-4">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">Product Variants</h3>
                   <Button
                     type="button"
-                    onClick={() => {
-                      setEditingVariant({
-                        name: '',
-                        price: 0,
-                        original_price: 0,
-                        slug: '',
-                        available: true
-                      });
-                      setEditingVariantIndex(null);
-                    }}
+                    variant="outline"
                     size="sm"
+                    onClick={handleAddVariant}
+                    className="flex items-center gap-2"
                   >
                     Add Variant
                   </Button>
                 </div>
 
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="w-full">
+                {editingVariant && (
+                  <div className="space-y-4 p-4 border rounded-lg">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Name</Label>
+                        <Input
+                          value={editingVariant.name}
+                          onChange={(e) => handleVariantChange('name', e.target.value)}
+                          placeholder="Variant name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Price</Label>
+                        <Input
+                          type="number"
+                          value={editingVariant.price}
+                          onChange={(e) => handleVariantChange('price', e.target.value)}
+                          placeholder="Price"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Original Price</Label>
+                        <Input
+                          type="number"
+                          value={editingVariant.original_price}
+                          onChange={(e) => handleVariantChange('original_price', e.target.value)}
+                          placeholder="Original price"
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="available"
+                          checked={editingVariant.available}
+                          onCheckedChange={(checked) => handleVariantChange('available', checked)}
+                        />
+                        <Label htmlFor="available">Available</Label>
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingVariant(null);
+                          setEditingVariantIndex(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="button" onClick={handleVariantSubmit}>
+                        {editingVariantIndex !== null ? 'Update' : 'Add'} Variant
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded-md border">
+                  <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Name</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Price</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Original</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Slug</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Available</th>
-                        <th className="px-4 py-2 text-right text-sm font-medium text-gray-500">Actions</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium">ID</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium">Name</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium">Price</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium">Original</th>
+                        <th className="px-4 py-2 text-left text-sm font-medium">Available</th>
+                        <th className="px-4 py-2 text-right text-sm font-medium">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {variants.map((variant, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
+                        <tr key={variant.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 text-gray-500">{variant.id}</td>
                           <td className="px-4 py-2">{variant.name}</td>
                           <td className="px-4 py-2">${variant.price}</td>
                           <td className="px-4 py-2">${variant.original_price}</td>
-                          <td className="px-4 py-2">{variant.slug}</td>
-                          <td className="px-4 py-2">
-                            <div className="flex items-center">
-                              <div className={cn(
-                                "w-2 h-2 rounded-full mr-2",
-                                variant.available ? "bg-green-500" : "bg-red-500"
-                              )} />
-                              {variant.available ? "Yes" : "No"}
-                            </div>
-                          </td>
+                          <td className="px-4 py-2">{variant.available ? 'Yes' : 'No'}</td>
                           <td className="px-4 py-2 text-right space-x-2">
                             <Button
                               type="button"
@@ -489,11 +566,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                               type="button"
                               variant="destructive"
                               size="sm"
-                              onClick={() => {
-                                const newVariants = variants.filter((_, i) => i !== index);
-                                setVariants(newVariants);
-                                handleInputChange('variants', JSON.stringify(newVariants));
-                              }}
+                              onClick={() => handleVariantDelete(index)}
                             >
                               Delete
                             </Button>
@@ -503,83 +576,6 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                     </tbody>
                   </table>
                 </div>
-
-                {editingVariant && (
-                  <Dialog open={!!editingVariant} onOpenChange={() => setEditingVariant(null)}>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>{editingVariantIndex !== null ? 'Edit' : 'Add'} Variant</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleVariantSubmit} className="space-y-4">
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="variant-name">Name</Label>
-                            <Input
-                              id="variant-name"
-                              value={editingVariant.name}
-                              onChange={(e) => setEditingVariant({ ...editingVariant, name: e.target.value })}
-                              placeholder="e.g., Basic, Pro, Enterprise"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="variant-price">Price</Label>
-                              <Input
-                                id="variant-price"
-                                type="number"
-                                value={editingVariant.price}
-                                onChange={(e) => setEditingVariant({ ...editingVariant, price: Number(e.target.value) })}
-                                placeholder="0.00"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="variant-original-price">Original Price</Label>
-                              <Input
-                                id="variant-original-price"
-                                type="number"
-                                value={editingVariant.original_price}
-                                onChange={(e) => setEditingVariant({ ...editingVariant, original_price: Number(e.target.value) })}
-                                placeholder="0.00"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="variant-slug">Slug</Label>
-                            <Input
-                              id="variant-slug"
-                              value={editingVariant.slug}
-                              onChange={(e) => setEditingVariant({ ...editingVariant, slug: e.target.value })}
-                              placeholder="product-name-variant"
-                            />
-                          </div>
-
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="variant-available"
-                              checked={editingVariant.available}
-                              onCheckedChange={(checked) => 
-                                setEditingVariant({ ...editingVariant, available: checked as boolean })
-                              }
-                            />
-                            <Label htmlFor="variant-available">Available</Label>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-end space-x-2">
-                          <Button type="button" variant="outline" onClick={() => setEditingVariant(null)}>
-                            Cancel
-                          </Button>
-                          <Button type="submit">
-                            {editingVariantIndex !== null ? 'Save' : 'Add'} Variant
-                          </Button>
-                        </div>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                )}
               </div>
             </TabsContent>
 
@@ -660,23 +656,15 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
             </TabsContent>
           </Tabs>
 
-          <div className="flex items-center justify-end space-x-3 border-t pt-4 mt-6">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              className="px-6"
-            >
+          <div className="flex justify-end space-x-2 pt-4 border-t">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button 
-              type="submit"
-              className="bg-blue-600 text-white hover:bg-blue-700 px-6"
-            >
-              Save Product
+            <Button type="button" onClick={handleSubmit}>
+              {product ? 'Update' : 'Create'} Product
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

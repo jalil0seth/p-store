@@ -36,7 +36,7 @@ interface Product {
 }
 
 export default function ProductPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const addItem = useCartStore((state) => state.addItem);
@@ -118,20 +118,20 @@ export default function ProductPage() {
     };
   }, [fetchProducts]);
 
-  // Find the product with matching slug
-  const product = products.find(p => p.slug === slug);
+  // Find the product with matching ID
+  const product = products.find(p => p.id === id);
 
   // If products are loaded but product not found, redirect to products page
   useEffect(() => {
     if (!isLoading && !product && products.length > 0) {
-      console.log('Available slugs:', products.map(p => p.slug));
-      console.log('Current slug:', slug);
+      console.log('Available IDs:', products.map(p => p.id));
+      console.log('Current ID:', id);
       navigate('/products', { 
         replace: true, 
-        state: { error: `Product "${slug}" not found` } 
+        state: { error: `Product "${id}" not found` } 
       });
     }
-  }, [isLoading, product, products, slug, navigate]);
+  }, [isLoading, product, products, id, navigate]);
 
   if (isLoading) {
     return (

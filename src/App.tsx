@@ -84,7 +84,7 @@ function AppContent({ theme }: { theme: string }) {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
-          <Route path="/product/:slug" element={<ProductPage />} />
+          <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/signin" element={<SignInPage />} />
           <Route
             path="/dashboard/*"

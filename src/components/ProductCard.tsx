@@ -112,7 +112,7 @@ export default function ProductCard({ product, layout = true }: ProductCardProps
       animate={{ opacity: 1, y: 0 }}
       className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
     >
-      <Link to={`/product/${product.slug || product.id}`} className="block">
+      <Link to={`/product/${product.id}`} className="block">
         <div className="relative aspect-[4/3] overflow-hidden">
           <img
             src={imageUrl}

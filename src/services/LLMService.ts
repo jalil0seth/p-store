@@ -1,5 +1,9 @@
 import axios from 'axios';
 
+function generateId(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
 export class LLMService {
     private static instance: LLMService;
     private static baseUrl = 'https://api.livepolls.app/api';
@@ -14,28 +18,26 @@ export class LLMService {
     }
 
     private standardizeVariants(productName: string, variants: any[]): any[] {
-        const slugify = (str: string) => str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        
         const defaultVariants = [
             {
+                id: generateId(),
                 name: "Basic",
                 price: 99,
                 original_price: 129,
-                slug: `${slugify(productName)}-basic`,
                 available: true
             },
             {
+                id: generateId(),
                 name: "Pro",
                 price: 199,
                 original_price: 249,
-                slug: `${slugify(productName)}-pro`,
                 available: true
             },
             {
+                id: generateId(),
                 name: "Enterprise",
                 price: 399,
                 original_price: 499,
-                slug: `${slugify(productName)}-enterprise`,
                 available: true
             }
         ];
@@ -45,10 +47,10 @@ export class LLMService {
         }
 
         return variants.map((variant, index) => ({
+            id: generateId(),
             name: variant.name || defaultVariants[index].name,
             price: Number(variant.price) || defaultVariants[index].price,
             original_price: Number(variant.original_price) || defaultVariants[index].original_price,
-            slug: slugify(variant.name ? `${productName}-${variant.name}` : defaultVariants[index].slug),
             available: true
         }));
     }
@@ -126,96 +128,70 @@ export class LLMService {
         }
     }
 
-    async generateProductContent(userInput: string): Promise<any> {
-        const systemPrompt = `You are a professional product content writer for an e-commerce store. Generate product content in a specific format.
-
-BRAND DETECTION RULES:
-- Known Technology Brands: Apple, Samsung, Sony, Microsoft, Google, Intel, AMD, NVIDIA, Dell, HP, Lenovo, Asus, Acer, LG, Logitech
-- Known Software Brands: Adobe, Microsoft, Autodesk, Oracle, SAP, Salesforce, VMware, Symantec, McAfee, Norton
-- If the first word is a recognizable brand name, use it as the brand
-- If no clear brand is present, use "Generic" as the brand
-
-VARIANT STRUCTURE (exactly 3 variants required):
-- Basic: Entry-level features, price range $49-$149
-- Pro: Advanced features, price range $149-$299
-- Enterprise: All features, price range $299-$599
-
-METADATA STRUCTURE:
-- Sales pitch: 15-25 words highlighting key value proposition
-- Bullet points: Exactly 3 points, each starting with "✓"
-
-IMPORTANT: Respond with a JSON object wrapped in markdown code block, like this:
+    async generateProductContent(productName: string): Promise<any> {
+        const systemPrompt = `You are a helpful AI that generates product content. Please generate realistic product content based on the product name. The response should be in JSON format and match this schema:
 \`\`\`json
 {
     "brand": "string",
     "name": "string",
-    ...
-}
-\`\`\``;
-
-        const userContent = `Generate product content for: ${userInput}
-
-Response must be a valid JSON object with these exact fields:
-{
-    "brand": "string",
-    "name": "string",
+    "description": "string",
+    "type": "string",
     "category": "string",
-    "subcategory": "string",
+    "featured": false,
+    "metadata": {
+        "sales_pitch": "string",
+        "bullet_points": ["string", "string", "string"]
+    },
     "variants": [
         {
             "name": "Basic",
             "price": number,
             "original_price": number,
-            "slug": "string",
-            "available": true
+            "available": true,
+            "id": "string"
         },
         {
             "name": "Pro",
             "price": number,
             "original_price": number,
-            "slug": "string",
-            "available": true
+            "available": true,
+            "id": "string"
         },
         {
             "name": "Enterprise",
             "price": number,
             "original_price": number,
-            "slug": "string",
-            "available": true
+            "available": true,
+            "id": "string"
         }
-    ],
-    "metadata": {
-        "sales_pitch": "string",
-        "bullet_points": ["string", "string", "string"]
-    },
-    "short_description": "string",
-    "detailed_description": "string",
-    "tags": ["string"],
-    "specs": {}
+    ]
 }`;
+
+        const userContent = `Generate product content for: ${productName}
+
+Please ensure the content is realistic and the prices make sense for the product category. The variants should follow a good/better/best pricing strategy.`;
 
         try {
             const response = await this.makeRequest(systemPrompt, userContent);
             
-            // Standardize the response structure
-            const parsedContent = {
-                ...response,
-                variants: this.standardizeVariants(response.name || userInput, response.variants || []),
-                metadata: this.standardizeMetadata(response.metadata),
-                brand: response.brand || 'Generic',
-                name: response.name || userInput,
-                category: response.category || 'Software',
-                subcategory: response.subcategory || 'Application',
-                short_description: response.short_description || `${userInput} - Professional software solution for modern businesses.`,
-                detailed_description: response.detailed_description || `<p>${userInput} is a comprehensive software solution designed for modern businesses.</p>`,
-                tags: Array.isArray(response.tags) ? response.tags : [response.category || 'Software'],
-                specs: response.specs || {}
+            // Process the response
+            return {
+                name: response.name,
+                brand: response.brand,
+                description: response.description,
+                type: response.type,
+                category: response.category,
+                featured: response.featured || false,
+                metadata: JSON.stringify({
+                    sales_pitch: response.metadata?.sales_pitch || "",
+                    bullet_points: response.metadata?.bullet_points || []
+                }),
+                variants: JSON.stringify(this.standardizeVariants(response.name, response.variants || [])),
+                isAvailable: true
             };
-
-            return parsedContent;
         } catch (error) {
-            console.error('Failed to generate product content:', error);
-            throw new Error('Failed to generate product content');
+            console.error('Error generating product content:', error);
+            throw error;
         }
     }
 }
