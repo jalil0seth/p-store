@@ -10,12 +10,12 @@ interface Product {
     type: string;
     category: string;
     brand: string;
-    featured: boolean;
+    featured: number;
     image?: string;
     images?: string;
     metadata?: string;
     variants: string;
-    isAvailable: boolean;
+    isAvailable: number;
     created?: string;
     updated?: string;
     collectionId?: string;
@@ -60,7 +60,21 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     createProduct: async (product: Partial<Product>) => {
         set({ loading: true, error: null });
         try {
-            const newProduct = await pocketBaseService.createProduct(product);
+            const variants = JSON.parse(product.variants || '[]');
+            const validatedVariants = variants.map((variant: any) => ({
+                ...variant,
+                id: variant.id || llmService.generateVariantId()
+            }));
+
+            // For new products, always set featured and isAvailable to 0
+            const cleanData = {
+                ...product,
+                variants: JSON.stringify(validatedVariants),
+                isAvailable: 0,
+                featured: 0
+            };
+
+            const newProduct = await pocketBaseService.createProduct(cleanData);
             const products = get().products;
             set({ products: [...products, newProduct], loading: false });
         } catch (error) {
@@ -82,13 +96,27 @@ export const useProductStore = create<ProductStore>((set, get) => ({
     updateProduct: async (id: string, data: Partial<Product>) => {
         set({ loading: true, error: null });
         try {
-            const updatedProduct = await pocketBaseService.updateProduct(id, data);
-            const products = get().products.map(product =>
-                product.id === id ? { ...product, ...updatedProduct } : product
+            // For updates, keep the existing values if not provided
+            const existingProduct = get().products.find(p => p.id === id);
+            if (!existingProduct) {
+                throw new Error('Product not found');
+            }
+
+            // Only update featured and isAvailable if they are explicitly provided
+            const cleanData = {
+                ...data,
+                featured: data.featured ?? existingProduct.featured,
+                isAvailable: data.isAvailable ?? existingProduct.isAvailable
+            };
+
+            const updatedProduct = await pocketBaseService.updateProduct(id, cleanData);
+            const products = get().products.map(p => 
+                p.id === id ? { ...p, ...updatedProduct } : p
             );
             set({ products, loading: false });
         } catch (error) {
             set({ error: (error as Error).message, loading: false });
+            throw error;
         }
     },
 
@@ -96,9 +124,14 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         set({ loading: true, error: null });
         try {
             const product = await pocketBaseService.getProduct(id);
+            if (!product) {
+                throw new Error(`Product with ID ${id} not found`);
+            }
             set({ selectedProduct: product, loading: false });
+            return product;
         } catch (error) {
-            set({ error: (error as Error).message, loading: false });
+            set({ error: (error as Error).message, loading: false, selectedProduct: null });
+            throw error;
         }
     },
 

@@ -194,7 +194,11 @@ export class PocketBaseService {
             );
 
             if (!response.ok) {
-                throw new Error('Failed to fetch product');
+                const errorData = await response.json();
+                if (response.status === 404) {
+                    return null;
+                }
+                throw new Error(`Failed to fetch product: ${JSON.stringify(errorData)}`);
             }
 
             return await response.json();
@@ -206,24 +210,37 @@ export class PocketBaseService {
 
     async createProduct(data: any) {
         try {
-            await this.ensureAuthenticated();
+            // For new products, always set featured and isAvailable to 0
+            const requestData = {
+                ...data,
+                featured: 0,
+                isAvailable: 0
+            };
+
+            console.log('Creating product with data:', requestData);
 
             const response = await fetch(
                 `${PocketBaseService.BASE_URL}/api/collections/store_products/records`,
                 {
                     method: 'POST',
-                    headers: this.getHeaders(),
-                    body: JSON.stringify(data)
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
                 }
             );
 
             if (!response.ok) {
-                throw new Error('Failed to create product');
+                const errorData = await response.json();
+                console.error('Server error response:', errorData);
+                console.error('Full error data:', JSON.stringify(errorData, null, 2));
+                throw new Error(errorData.message || 'Failed to create product');
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Failed to create product:', error);
+            console.error('Error in createProduct:', error);
             throw error;
         }
     }
@@ -232,22 +249,82 @@ export class PocketBaseService {
         try {
             await this.ensureAuthenticated();
 
+            // First verify the product exists
+            const product = await this.getProduct(id);
+            if (!product) {
+                throw new Error(`Product with ID ${id} not found`);
+            }
+
+            // Validate required fields
+            const requiredFields = ['name', 'brand', 'category', 'type', 'featured', 'isAvailable'];
+            console.log('Data received in updateProduct:', data);
+            console.log('Featured value:', data.featured, typeof data.featured);
+            const missingFields = requiredFields.filter(field => {
+                const value = data[field];
+                console.log(`Field ${field}:`, value, typeof value);
+                return value === undefined || value === null;
+            });
+            if (missingFields.length > 0) {
+                throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+            }
+
+            // Convert boolean values to integers and clean the data
+            const cleanData = {
+                ...data,
+                isAvailable: Number(data.isAvailable || 0), // Default to 0 if undefined
+                featured: Number(data.featured || 0), // Default to 0 if undefined
+                variants: typeof data.variants === 'string' ? data.variants : JSON.stringify(data.variants || []),
+                metadata: typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata || {}),
+                images: typeof data.images === 'string' ? data.images : JSON.stringify(data.images || [])
+            };
+
+            console.log('Clean data being sent to API:', cleanData);
+            console.log('Featured value in cleanData:', cleanData.featured, typeof cleanData.featured);
+            console.log('Full request payload:', JSON.stringify(cleanData, null, 2));
+
+            // Validate against schema requirements
+            if (cleanData.featured === undefined || cleanData.featured === null || 
+                cleanData.featured < 0 || cleanData.featured > 1) {
+                throw new Error('Featured must be a number between 0 and 1');
+            }
+
+            console.log('Request data with schema validation:', cleanData);
+            console.log('Featured value type:', typeof cleanData.featured);
+
             const response = await fetch(
                 `${PocketBaseService.BASE_URL}/api/collections/store_products/records/${id}`,
                 {
                     method: 'PATCH',
-                    headers: this.getHeaders(),
-                    body: JSON.stringify(data)
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(cleanData)
                 }
             );
 
             if (!response.ok) {
-                throw new Error('Failed to update product');
+                const errorData = await response.json();
+                console.error('Server error response:', errorData);
+                console.error('Full error data:', JSON.stringify(errorData, null, 2));
+                
+                // If there are specific field validation errors, include them in the error message
+                if (errorData.data) {
+                    const fieldErrors = Object.entries(errorData.data)
+                        .map(([field, error]) => `${field}: ${error}`)
+                        .join(', ');
+                    throw new Error(`Validation error: ${fieldErrors}`);
+                }
+                
+                if (response.status === 404) {
+                    throw new Error(`Product with ID ${id} not found`);
+                }
+                throw new Error(errorData.message || 'Failed to update product');
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Failed to update product:', error);
+            console.error('Error in updateProduct:', error);
             throw error;
         }
     }

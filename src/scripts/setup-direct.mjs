@@ -93,7 +93,7 @@ const SOFTWARE_PRODUCTS = [
         brand: 'Adobe',
         type: 'mac_windows',
         category: 'Creative Suite',
-        featured: true,
+        featured: 1,
         variants: [
             {
                 name: 'Monthly Plan',
@@ -128,7 +128,7 @@ const SOFTWARE_PRODUCTS = [
         brand: 'Adobe',
         type: 'mac_windows',
         category: 'Photo Editing',
-        featured: true,
+        featured: 1,
         variants: [
             {
                 name: 'Monthly Plan',
@@ -155,7 +155,7 @@ const SOFTWARE_PRODUCTS = [
         brand: 'Microsoft',
         type: 'mac_windows',
         category: 'Office Suite',
-        featured: true,
+        featured: 1,
         variants: [
             {
                 name: 'Personal (Monthly)',
@@ -191,7 +191,7 @@ const SOFTWARE_PRODUCTS = [
         brand: 'Apple',
         type: 'mac',
         category: 'Video Editing',
-        featured: true,
+        featured: 1,
         variants: [
             {
                 name: 'Perpetual License',
@@ -255,8 +255,10 @@ async function createCollection() {
                 },
                 {
                     name: "featured",
-                    type: "bool",
-                    required: true
+                    type: "number",
+                    required: true,
+                    min: 0,
+                    max: 1
                 },
                 {
                     name: "image",
@@ -280,9 +282,11 @@ async function createCollection() {
                 },
                 {
                     name: "isAvailable",
-                    type: "bool",
+                    type: "number",
                     required: true,
-                    default: true
+                    min: 0,
+                    max: 1,
+                    default: "1"
                 }
             ],
             listRule: '',
@@ -358,7 +362,7 @@ async function createProduct(product) {
             category: product.category,
             featured: product.featured,
             variants: JSON.stringify(product.variants),
-            isAvailable: true,
+            isAvailable: 1,
             metadata: JSON.stringify(metadata),
             images: JSON.stringify([
                 'https://placehold.co/600x400',

@@ -1,8 +1,14 @@
 import axios from 'axios';
 
-function generateId(): string {
+export const generateId = (): string => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
+
+export const generateVariantId = (): string => {
+  const timestamp = Date.now().toString(36);
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  return `VAR-${timestamp}-${randomStr}`.toUpperCase();
+};
 
 export class LLMService {
     private static instance: LLMService;
@@ -20,21 +26,21 @@ export class LLMService {
     private standardizeVariants(productName: string, variants: any[]): any[] {
         const defaultVariants = [
             {
-                id: generateId(),
+                id: generateVariantId(),
                 name: "Basic",
                 price: 99,
                 original_price: 129,
                 available: true
             },
             {
-                id: generateId(),
+                id: generateVariantId(),
                 name: "Pro",
                 price: 199,
                 original_price: 249,
                 available: true
             },
             {
-                id: generateId(),
+                id: generateVariantId(),
                 name: "Enterprise",
                 price: 399,
                 original_price: 499,
@@ -47,7 +53,7 @@ export class LLMService {
         }
 
         return variants.map((variant, index) => ({
-            id: generateId(),
+            id: generateVariantId(),
             name: variant.name || defaultVariants[index].name,
             price: Number(variant.price) || defaultVariants[index].price,
             original_price: Number(variant.original_price) || defaultVariants[index].original_price,
@@ -97,47 +103,41 @@ export class LLMService {
         try {
             const response = await axios.post(`${LLMService.baseUrl}/write-with-role`, {
                 messages: [
-                    {
-                        role: 'system',
-                        content: systemPrompt
-                    },
-                    {
-                        role: 'user',
-                        content: userContent
-                    }
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userContent }
                 ]
             });
 
             const initialData = response.data;
             const taskId = initialData.task_id;
 
+            // Poll for results
             while (true) {
                 const statusResponse = await axios.get(`${LLMService.baseUrl}/async-task-result/${taskId}`);
                 const statusData = statusResponse.data;
 
                 if (!(statusData.running ?? false)) {
-                    const result = JSON.parse(statusData.result);
+                    const result = JSON.parse(statusData.result ?? '{}');
                     return this.extractJsonFromMarkdown(result.content);
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before next poll
             }
         } catch (error) {
-            console.error('API request failed:', error);
-            throw new Error('Failed to generate content');
+            console.error('Error making request:', error);
+            throw error;
         }
     }
 
     async generateProductContent(productName: string): Promise<any> {
         const systemPrompt = `You are a helpful AI that generates product content. Please generate realistic product content based on the product name. The response should be in JSON format and match this schema:
-\`\`\`json
 {
     "brand": "string",
     "name": "string",
     "description": "string",
     "type": "string",
     "category": "string",
-    "featured": false,
+    "featured": 0,
     "metadata": {
         "sales_pitch": "string",
         "bullet_points": ["string", "string", "string"]
@@ -145,53 +145,65 @@ export class LLMService {
     "variants": [
         {
             "name": "Basic",
-            "price": number,
-            "original_price": number,
-            "available": true,
-            "id": "string"
+            "price": 99,
+            "original_price": 129,
+            "available": true
         },
         {
             "name": "Pro",
-            "price": number,
-            "original_price": number,
-            "available": true,
-            "id": "string"
+            "price": 199,
+            "original_price": 249,
+            "available": true
         },
         {
             "name": "Enterprise",
-            "price": number,
-            "original_price": number,
-            "available": true,
-            "id": "string"
+            "price": 399,
+            "original_price": 499,
+            "available": true
         }
     ]
 }`;
 
         const userContent = `Generate product content for: ${productName}
 
-Please ensure the content is realistic and the prices make sense for the product category. The variants should follow a good/better/best pricing strategy.`;
+Please ensure:
+1. The content is realistic and detailed
+2. The description highlights key features and benefits
+3. The prices make sense for the product category
+4. The variants follow a good/better/best pricing strategy
+5. The metadata includes compelling sales pitch and bullet points`;
 
         try {
             const response = await this.makeRequest(systemPrompt, userContent);
             
-            // Process the response
-            return {
-                name: response.name,
-                brand: response.brand,
-                description: response.description,
-                type: response.type,
-                category: response.category,
-                featured: response.featured || false,
-                metadata: JSON.stringify({
-                    sales_pitch: response.metadata?.sales_pitch || "",
-                    bullet_points: response.metadata?.bullet_points || []
-                }),
+            // Standardize the response and ensure numeric fields
+            const standardizedResponse = {
+                name: response.name || productName,
+                brand: response.brand || '',
+                description: response.description || '',
+                type: response.type || '',
+                category: response.category || '',
+                featured: 0, // Always set to 0 for new products
+                metadata: JSON.stringify(this.standardizeMetadata(response.metadata)),
                 variants: JSON.stringify(this.standardizeVariants(response.name, response.variants || [])),
-                isAvailable: true
+                isAvailable: 0 // Always set to 0 for new products
             };
+
+            return standardizedResponse;
         } catch (error) {
             console.error('Error generating product content:', error);
-            throw error;
+            // Return default values if generation fails
+            return {
+                name: productName,
+                brand: '',
+                description: '',
+                type: '',
+                category: '',
+                featured: 0,
+                metadata: JSON.stringify(this.standardizeMetadata({})),
+                variants: JSON.stringify(this.standardizeVariants(productName, [])),
+                isAvailable: 0
+            };
         }
     }
 }
