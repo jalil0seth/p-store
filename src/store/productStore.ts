@@ -5,13 +5,17 @@ import { llmService } from '../services/LLMService';
 interface Product {
     id: string;
     name: string;
-    description: string;
-    price: number;
-    originalPrice: number;
+    slug: string;
+    description?: string;
+    type: string;
     category: string;
     brand: string;
+    featured: boolean;
+    image?: string;
+    images?: string;
+    metadata?: string;
     variants: string;
-    metadata: string;
+    isAvailable: boolean;
     created?: string;
     updated?: string;
     collectionId?: string;
@@ -27,7 +31,7 @@ interface ProductState {
 
 interface ProductActions {
     fetchProducts: (filter?: string) => Promise<void>;
-    createProduct: (productName: string) => Promise<void>;
+    createProduct: (product: Partial<Product>) => Promise<void>;
     deleteProduct: (id: string) => Promise<void>;
     updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
     getProduct: (id: string) => Promise<void>;
@@ -49,24 +53,18 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             const products = await pocketBaseService.getProducts(filter);
             set({ products, loading: false });
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch products';
-            set({ error: errorMessage, loading: false });
+            set({ error: (error as Error).message, loading: false });
         }
     },
 
-    createProduct: async (productName: string) => {
+    createProduct: async (product: Partial<Product>) => {
         set({ loading: true, error: null });
         try {
-            const productData = await llmService.generateProductContent(productName);
-            const newProduct = await pocketBaseService.createProduct(productData);
-            
-            set(state => ({ 
-                products: [...state.products, newProduct],
-                loading: false 
-            }));
+            const newProduct = await pocketBaseService.createProduct(product);
+            const products = get().products;
+            set({ products: [...products, newProduct], loading: false });
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to create product';
-            set({ error: errorMessage, loading: false });
+            set({ error: (error as Error).message, loading: false });
         }
     },
 
@@ -74,14 +72,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         set({ loading: true, error: null });
         try {
             await pocketBaseService.deleteProduct(id);
-            set(state => ({
-                products: state.products.filter(p => p.id !== id),
-                loading: false,
-                selectedProduct: state.selectedProduct?.id === id ? null : state.selectedProduct
-            }));
+            const products = get().products.filter(product => product.id !== id);
+            set({ products, loading: false });
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to delete product';
-            set({ error: errorMessage, loading: false });
+            set({ error: (error as Error).message, loading: false });
         }
     },
 
@@ -89,14 +83,12 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         set({ loading: true, error: null });
         try {
             const updatedProduct = await pocketBaseService.updateProduct(id, data);
-            set(state => ({
-                products: state.products.map(p => p.id === id ? updatedProduct : p),
-                loading: false,
-                selectedProduct: state.selectedProduct?.id === id ? updatedProduct : state.selectedProduct
-            }));
+            const products = get().products.map(product =>
+                product.id === id ? { ...product, ...updatedProduct } : product
+            );
+            set({ products, loading: false });
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to update product';
-            set({ error: errorMessage, loading: false });
+            set({ error: (error as Error).message, loading: false });
         }
     },
 
@@ -106,16 +98,11 @@ export const useProductStore = create<ProductStore>((set, get) => ({
             const product = await pocketBaseService.getProduct(id);
             set({ selectedProduct: product, loading: false });
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch product';
-            set({ error: errorMessage, loading: false });
+            set({ error: (error as Error).message, loading: false });
         }
     },
 
-    setSelectedProduct: (product: Product | null) => {
-        set({ selectedProduct: product });
-    },
+    setSelectedProduct: (product: Product | null) => set({ selectedProduct: product }),
 
-    clearError: () => {
-        set({ error: null });
-    }
+    clearError: () => set({ error: null })
 }));

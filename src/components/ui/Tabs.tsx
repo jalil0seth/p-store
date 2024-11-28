@@ -38,7 +38,13 @@ export function Tabs({ defaultValue, className, children }: TabsProps) {
 
   return (
     <TabsContext.Provider value={{ value, onChange: setValue }}>
-      <div className={cn('w-full', className)}>{children}</div>
+      <div 
+        className={cn('w-full', className)}
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        {children}
+      </div>
     </TabsContext.Provider>
   );
 }
@@ -46,6 +52,8 @@ export function Tabs({ defaultValue, className, children }: TabsProps) {
 export function TabsList({ className, children }: TabsListProps) {
   return (
     <div
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
       className={cn(
         'inline-flex w-full rounded-lg bg-gray-100 p-1 dark:bg-gray-800',
         className
@@ -57,20 +65,27 @@ export function TabsList({ className, children }: TabsListProps) {
 }
 
 export function TabsTrigger({ value, className, children }: TabsTriggerProps) {
-  const { value: selectedValue, onChange } = React.useContext(TabsContext);
-  const isSelected = value === selectedValue;
+  const { value: currentValue, onChange } = React.useContext(TabsContext);
 
   return (
     <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onChange(value);
+      }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       className={cn(
-        'flex items-center justify-center px-3 py-1.5 text-sm font-medium transition-all',
-        'rounded-md',
-        isSelected
-          ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
-          : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        currentValue === value
+          ? 'bg-white text-foreground shadow-sm dark:bg-gray-950'
+          : 'text-muted-foreground hover:text-foreground',
         className
       )}
-      onClick={() => onChange(value)}
     >
       {children}
     </button>
@@ -85,7 +100,11 @@ export function TabsContent({ value, className, children }: TabsContentProps) {
   }
 
   return (
-    <div className={cn('mt-2 rounded-lg', className)}>
+    <div 
+      className={cn('mt-2 rounded-lg', className)}
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       {children}
     </div>
   );

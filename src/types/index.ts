@@ -3,14 +3,19 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  image: string;
+  originalPrice: number;
   category: string;
-  rating: number;
-  reviews: number;
-  features: string[];
-  specs: Record<string, string[]>;
-  inStock: boolean;
-  featured: boolean;
+  brand: string;
+  variants: string;
+  metadata: string;
+  images: string[];
+  features: string;
+  isAvailable: boolean;
+  status: 'active' | 'draft' | 'archived';
+  created?: string;
+  updated?: string;
+  collectionId?: string;
+  collectionName?: string;
 }
 
 export interface Review {
