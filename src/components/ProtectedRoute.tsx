@@ -1,22 +1,42 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireAdmin?: boolean;
+  adminOnly?: boolean;
 }
 
-export default function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { isAuthenticated, isAdmin } = useAuthStore();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
+  const location = useLocation();
+  const { user, isAdmin, init } = useAuthStore();
+  const [isChecking, setIsChecking] = useState(true);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/signin" replace />;
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        setIsChecking(true);
+        await init();
+      } finally {
+        setIsChecking(false);
+      }
+    };
+    checkAuth();
+  }, [init]); // Only run when init changes
+
+  if (isChecking) {
+    return <div>Loading...</div>;
   }
 
-  if (requireAdmin && !isAdmin) {
+  if (!user) {
+    return <Navigate to="/signin" state={{ from: location }} replace />;
+  }
+
+  if (adminOnly && !isAdmin) {
     return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
-}
+};
+
+export default ProtectedRoute;

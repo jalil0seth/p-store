@@ -1,23 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
+
+// Eagerly load critical components
 import Hero from '../components/Hero';
 import BrandBar from '../components/BrandBar';
-import FeaturedProducts from '../components/FeaturedProducts';
-import Reviews from '../components/Reviews';
-import SalesNotifications from '../components/SalesNotifications';
-import CookieConsent from '../components/CookieConsent';
+
+// Lazy load non-critical components
+const FeaturedProducts = lazy(() => import('../components/FeaturedProducts'));
+const Reviews = lazy(() => import('../components/Reviews'));
+const SalesNotifications = lazy(() => import('../components/SalesNotifications'));
+const CookieConsent = lazy(() => import('../components/CookieConsent'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="w-full h-32 flex items-center justify-center">
+    <div className="animate-pulse text-gray-400">Loading...</div>
+  </div>
+);
 
 export default function HomePage() {
-  const [showCookieConsent, setShowCookieConsent] = useState(false);
+  const [showCookieConsent, setShowCookieConsent] = useState(() => {
+    // Initialize from localStorage during component mount
+    return !localStorage.getItem('cookieConsent');
+  });
   const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
-    // Initialize cookie consent after a short delay
-    const cookieTimer = setTimeout(() => {
-      const cookieConsent = localStorage.getItem('cookieConsent');
-      setShowCookieConsent(!cookieConsent);
-    }, 1000);
-
     // Initialize sales notification after a delay
     const notificationTimer = setTimeout(() => {
       setShowNotification(true);
@@ -25,14 +33,14 @@ export default function HomePage() {
 
     // Rotate notifications every 10 seconds
     const interval = setInterval(() => {
-      setShowNotification(false);
-      setTimeout(() => {
-        setShowNotification(true);
-      }, 500);
+      setShowNotification(prev => {
+        if (!prev) return true;
+        setTimeout(() => setShowNotification(true), 500);
+        return false;
+      });
     }, 10000);
 
     return () => {
-      clearTimeout(cookieTimer);
       clearTimeout(notificationTimer);
       clearInterval(interval);
     };
@@ -52,24 +60,26 @@ export default function HomePage() {
     <main className="overflow-hidden">
       <Hero />
       <BrandBar />
-      <div className="space-y-16">
-        <FeaturedProducts />
-        <Reviews />
-      </div>
+      <Suspense fallback={<LoadingFallback />}>
+        <div className="space-y-16">
+          <FeaturedProducts />
+          <Reviews />
+        </div>
 
-      <AnimatePresence>
-        {showNotification && <SalesNotifications show={showNotification} />}
-      </AnimatePresence>
+        <AnimatePresence>
+          {showNotification && <SalesNotifications show={showNotification} />}
+        </AnimatePresence>
 
-      <AnimatePresence>
-        {showCookieConsent && (
-          <CookieConsent
-            show={showCookieConsent}
-            onAccept={handleAcceptCookies}
-            onDecline={handleDeclineCookies}
-          />
-        )}
-      </AnimatePresence>
+        <AnimatePresence>
+          {showCookieConsent && (
+            <CookieConsent
+              show={showCookieConsent}
+              onAccept={handleAcceptCookies}
+              onDecline={handleDeclineCookies}
+            />
+          )}
+        </AnimatePresence>
+      </Suspense>
     </main>
   );
 }

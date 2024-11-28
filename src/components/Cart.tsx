@@ -6,13 +6,25 @@ import { useCartStore } from '../store/cartStore';
 const CHECKOUT_STEPS = ['Cart', 'Information', 'Payment'];
 
 export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { items, removeItem, updateQuantity, total } = useCartStore();
-  const [currentStep, setCurrentStep] = useState(0);
+  const { 
+    items, 
+    removeItem, 
+    updateQuantity, 
+    total, 
+    highlightedItemId,
+    currentStep,
+    setCurrentStep
+  } = useCartStore();
   const [customerInfo, setCustomerInfo] = useState({
     email: '',
     name: '',
-    address: '',
+    whatsapp: '',
     discountCode: ''
+  });
+  const [errors, setErrors] = useState({
+    email: '',
+    name: '',
+    whatsapp: ''
   });
   const [paymentInfo, setPaymentInfo] = useState({
     cardNumber: '',
@@ -21,15 +33,55 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     paymentMethod: 'credit-card'
   });
 
+  const validateEmail = (email: string) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const validateWhatsApp = (number: string) => {
+    const re = /^\+?[1-9]\d{1,14}$/;
+    return re.test(number);
+  };
+
   const handleNext = () => {
+    if (currentStep === 1) {
+      // Validate information step
+      const newErrors = {
+        email: '',
+        name: '',
+        whatsapp: ''
+      };
+
+      if (!customerInfo.email) {
+        newErrors.email = 'Email is required';
+      } else if (!validateEmail(customerInfo.email)) {
+        newErrors.email = 'Invalid email format';
+      }
+
+      if (!customerInfo.name.trim()) {
+        newErrors.name = 'Name is required';
+      }
+
+      // Only validate WhatsApp if a number is provided
+      if (customerInfo.whatsapp && !validateWhatsApp(customerInfo.whatsapp)) {
+        newErrors.whatsapp = 'Invalid WhatsApp number format';
+      }
+
+      setErrors(newErrors);
+
+      if (Object.values(newErrors).some(error => error)) {
+        return;
+      }
+    }
+
     if (currentStep < CHECKOUT_STEPS.length - 1) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep(currentStep + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep(currentStep - 1);
     }
   };
 
@@ -42,11 +94,15 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               <motion.div
                 key={item.id}
                 layout
-                className="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg"
+                className={`flex items-center space-x-4 py-4 bg-gray-50 rounded-lg px-2 ${
+                  highlightedItemId === item.id 
+                    ? 'bg-primary-50 rounded-lg transition-colors duration-500'
+                    : ''
+                }`}
               >
                 <div className="flex-1">
                   <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-gray-600">${item.price}/mo</p>
+                  <p className="text-gray-600">${item.price}</p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
@@ -79,42 +135,69 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
           <div className="p-4 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
                 value={customerInfo.email}
-                onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                onChange={(e) => {
+                  setCustomerInfo(prev => ({ ...prev, email: e.target.value }));
+                  if (errors.email) {
+                    setErrors(prev => ({ ...prev, email: '' }));
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
+                  errors.email ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="your@email.com"
-                required
               />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
+                Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={customerInfo.name}
-                onChange={(e) => setCustomerInfo(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                onChange={(e) => {
+                  setCustomerInfo(prev => ({ ...prev, name: e.target.value }));
+                  if (errors.name) {
+                    setErrors(prev => ({ ...prev, name: '' }));
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
+                  errors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="John Doe"
-                required
               />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address
+                WhatsApp Number
               </label>
               <input
-                type="text"
-                value={customerInfo.address}
-                onChange={(e) => setCustomerInfo(prev => ({ ...prev, address: e.target.value }))}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
-                placeholder="123 Main St"
-                required
+                type="tel"
+                value={customerInfo.whatsapp}
+                onChange={(e) => {
+                  setCustomerInfo(prev => ({ ...prev, whatsapp: e.target.value }));
+                  if (errors.whatsapp) {
+                    setErrors(prev => ({ ...prev, whatsapp: '' }));
+                  }
+                }}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 ${
+                  errors.whatsapp ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="+1234567890"
               />
+              {errors.whatsapp && (
+                <p className="mt-1 text-sm text-red-500">{errors.whatsapp}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -124,7 +207,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 type="text"
                 value={customerInfo.discountCode}
                 onChange={(e) => setCustomerInfo(prev => ({ ...prev, discountCode: e.target.value }))}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 placeholder="Enter code (optional)"
               />
             </div>
@@ -290,7 +373,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
               <div className="sticky bottom-0 bg-white border-t p-4 space-y-4">
                 <div className="flex items-center justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}/mo</span>
+                  <span>${total.toFixed(2)}</span>
                 </div>
                 <button 
                   className="w-full btn btn-primary space-x-2 py-3 disabled:opacity-50"

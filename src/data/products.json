@@ -1,0 +1,88 @@
+{
+  "products": [
+    {
+      "id": "1",
+      "name": "Classic White T-Shirt",
+      "description": "Premium cotton basic white t-shirt, perfect for everyday wear. Features a comfortable fit and durable fabric that maintains its shape after washing.",
+      "price": 29.99,
+      "originalPrice": 39.99,
+      "discount": 25,
+      "category": "clothing",
+      "tags": ["t-shirt", "basics", "white", "cotton"],
+      "images": {
+        "main": "/products/white-tshirt.jpg",
+        "gallery": [
+          "/products/white-tshirt-front.jpg",
+          "/products/white-tshirt-back.jpg"
+        ]
+      },
+      "variants": {
+        "sizes": ["S", "M", "L", "XL"],
+        "colors": ["white"]
+      },
+      "specs": {
+        "material": "100% Cotton",
+        "care": "Machine wash cold",
+        "fit": "Regular fit"
+      },
+      "stock": 50,
+      "featured": true
+    },
+    {
+      "id": "2",
+      "name": "Slim Fit Jeans",
+      "description": "Modern slim fit jeans in classic blue denim. Made with stretch fabric for maximum comfort and mobility throughout the day.",
+      "price": 79.99,
+      "originalPrice": 99.99,
+      "discount": 20,
+      "category": "clothing",
+      "tags": ["jeans", "denim", "slim-fit"],
+      "images": {
+        "main": "/products/slim-jeans.jpg",
+        "gallery": [
+          "/products/slim-jeans-front.jpg",
+          "/products/slim-jeans-back.jpg"
+        ]
+      },
+      "variants": {
+        "sizes": ["30x30", "32x32", "34x34"],
+        "colors": ["blue", "black"]
+      },
+      "specs": {
+        "material": "98% Cotton, 2% Elastane",
+        "care": "Machine wash cold",
+        "fit": "Slim fit"
+      },
+      "stock": 35,
+      "featured": true
+    },
+    {
+      "id": "3",
+      "name": "Leather Sneakers",
+      "description": "Premium leather sneakers with comfortable cushioning and stylish design. Perfect for both casual and semi-formal occasions.",
+      "price": 129.99,
+      "originalPrice": 159.99,
+      "discount": 19,
+      "category": "shoes",
+      "tags": ["sneakers", "leather", "casual"],
+      "images": {
+        "main": "/products/leather-sneakers.jpg",
+        "gallery": [
+          "/products/leather-sneakers-side.jpg",
+          "/products/leather-sneakers-top.jpg"
+        ]
+      },
+      "variants": {
+        "sizes": ["40", "41", "42", "43", "44"],
+        "colors": ["white", "black", "brown"]
+      },
+      "specs": {
+        "material": "Genuine Leather",
+        "care": "Clean with leather cleaner",
+        "sole": "Rubber sole"
+      },
+      "stock": 25,
+      "featured": true
+    }
+  ]
+}

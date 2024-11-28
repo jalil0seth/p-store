@@ -1,20 +1,3 @@
-export interface Partner {
-  id: string;
-  name: string;
-  logo: string;
-  description: string;
-  url: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  slug: string;
-  productCount: number;
-}
-
 export interface Product {
   id: string;
   name: string;
@@ -26,6 +9,8 @@ export interface Product {
   reviews: number;
   features: string[];
   specs: Record<string, string[]>;
+  inStock: boolean;
+  featured: boolean;
 }
 
 export interface Review {
@@ -39,12 +24,41 @@ export interface Review {
   date: string;
 }
 
-export interface Resource {
-  id: string;
-  title: string;
+export interface HomeConfig {
+  hero: {
+    title: string;
+    subtitle: string;
+    ctaText: string;
+    image: string;
+  };
+  featuredProducts: {
+    title: string;
+    subtitle: string;
+    productIds: string[];
+  };
+  reviews: {
+    title: string;
+    subtitle: string;
+    reviewIds: string[];
+  };
+}
+
+export interface WebsiteConfig {
+  name: string;
   description: string;
-  image: string;
-  category: string;
-  url: string;
-  date: string;
+  logo: string;
+  contactEmail: string;
+  socialLinks: {
+    twitter?: string;
+    facebook?: string;
+    instagram?: string;
+    linkedin?: string;
+  };
+  footerLinks: {
+    title: string;
+    links: Array<{
+      text: string;
+      url: string;
+    }>;
+  }[];
 }
