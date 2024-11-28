@@ -61,6 +61,16 @@ function generateId(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+const parseVariants = (variantsStr: string): Variant[] => {
+  try {
+    const parsed = JSON.parse(variantsStr || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Error parsing variants:', error);
+    return [];
+  }
+};
+
 export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
   product,
   open,
@@ -68,7 +78,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
   onSave,
 }) => {
   const [formData, setFormData] = useState<Partial<Product>>(defaultProduct);
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeTab, setActiveTab] = useState<string>("basic");
   const [features, setFeatures] = useState<ProductFeatures>(defaultFeatures);
   const [jsonErrors, setJsonErrors] = useState<{
     images?: string;
@@ -82,29 +92,46 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
 
   useEffect(() => {
     if (open) {
+      setActiveTab("basic"); // Reset to basic tab when modal opens
       if (product) {
-        setFormData({
-          ...defaultProduct,
-          ...product,
-        });
         try {
-          const parsedVariants = JSON.parse(product.variants || '[]');
-          if (!Array.isArray(parsedVariants)) {
-            console.error('Variants is not an array:', parsedVariants);
-            setVariants([]);
-          } else {
-            setVariants(parsedVariants);
-          }
-          const parsedFeatures = JSON.parse(product.features || JSON.stringify(defaultFeatures));
-          setFeatures(parsedFeatures);
+          const parsedVariants = parseVariants(product.variants || '[]');
+          setVariants(parsedVariants);
+          setFormData({
+            ...product,
+            variants: JSON.stringify(parsedVariants),
+            images: JSON.stringify(product.images || []),
+            metadata: JSON.stringify(product.metadata || {}, null, 2),
+            features: JSON.stringify(product.features || {})
+          });
+          setFeatures(product.features || defaultFeatures);
         } catch (error) {
-          console.error('Error parsing variants or features:', error);
+          console.error('Error initializing product data:', error);
           setVariants([]);
+          setFormData({
+            ...product,
+            variants: '[]',
+            images: '[]',
+            metadata: '{}',
+            features: JSON.stringify(defaultFeatures)
+          });
           setFeatures(defaultFeatures);
         }
       } else {
-        setFormData(defaultProduct);
         setVariants([]);
+        setFormData({
+          name: '',
+          description: '',
+          image: '',
+          brand: '',
+          category: '',
+          type: '',
+          images: '[]',
+          variants: '[]',
+          metadata: '{}',
+          features: JSON.stringify(defaultFeatures),
+          isAvailable: true
+        });
         setFeatures(defaultFeatures);
       }
       setJsonErrors({});
@@ -116,19 +143,20 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
   const handleVariantSubmit = () => {
     if (!editingVariant) return;
 
-    const newVariants = [...variants];
+    const newVariant = {
+      ...editingVariant,
+      id: editingVariant.id || generateId()
+    };
+
+    const updatedVariants = [...variants];
     if (editingVariantIndex !== null) {
-      newVariants[editingVariantIndex] = editingVariant;
+      updatedVariants[editingVariantIndex] = newVariant;
     } else {
-      // Ensure new variant has an ID
-      newVariants.push({
-        ...editingVariant,
-        id: editingVariant.id || generateId()
-      });
+      updatedVariants.push(newVariant);
     }
 
-    setVariants(newVariants);
-    setFormData(prev => ({ ...prev, variants: JSON.stringify(newVariants) }));
+    setVariants(updatedVariants);
+    handleInputChange('variants', JSON.stringify(updatedVariants));
     setEditingVariant(null);
     setEditingVariantIndex(null);
   };
@@ -154,17 +182,17 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
 
   const handleEditVariant = (index: number) => {
     const variant = variants[index];
-    setEditingVariant({
-      ...variant,
-      id: variant.id || generateId()
-    });
-    setEditingVariantIndex(index);
+    if (variant) {
+      setEditingVariant({ ...variant });
+      setEditingVariantIndex(index);
+    }
   };
 
   const handleVariantDelete = (index: number) => {
-    const newVariants = variants.filter((_, i) => i !== index);
-    setVariants(newVariants);
-    setFormData(prev => ({ ...prev, variants: JSON.stringify(newVariants) }));
+    const updatedVariants = [...variants];
+    updatedVariants.splice(index, 1);
+    setVariants(updatedVariants);
+    handleInputChange('variants', JSON.stringify(updatedVariants));
   };
 
   const handleGenerateContent = async () => {
@@ -189,7 +217,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
 
       try {
         // Parse variants from the result
-        const parsedVariants = JSON.parse(result.variants);
+        const parsedVariants = parseVariants(result.variants);
         if (Array.isArray(parsedVariants)) {
           setVariants(parsedVariants);
         } else {
@@ -234,34 +262,42 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
     onOpenChange(false);
   };
 
-  const imagesToText = (jsonStr: string): string => {
+  const parseImages = (imagesStr: string): string[] => {
     try {
-      const urls = JSON.parse(jsonStr || '[]');
-      return Array.isArray(urls) ? urls.join('\n') : '';
-    } catch {
-      return '';
+      const parsed = JSON.parse(imagesStr || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error('Error parsing images:', error);
+      return [];
     }
   };
 
-  const textToImages = (text: string): string => {
-    const urls = text
-      .split('\n')
-      .map(url => url.trim())
-      .filter(url => url.length > 0);
-    return JSON.stringify(urls, null, 2);
+  const imagesToText = (imagesStr: string): string => {
+    const images = parseImages(imagesStr);
+    return images.join('\n');
   };
 
-  const validateJson = (value: string, field: 'images' | 'variants' | 'metadata'): boolean => {
+  const textToImages = (text: string): string => {
+    const images = text
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    return JSON.stringify(images);
+  };
+
+  const validateJson = (value: string, field: keyof typeof jsonErrors) => {
     try {
       const parsed = JSON.parse(value);
-      if (field === 'images' && !Array.isArray(parsed)) {
-        setJsonErrors(prev => ({ ...prev, [field]: 'Must be a JSON array' }));
-        return false;
+      if (field === 'images' || field === 'variants') {
+        if (!Array.isArray(parsed)) {
+          setJsonErrors(prev => ({ ...prev, [field]: `${field} must be an array` }));
+          return false;
+        }
       }
       setJsonErrors(prev => ({ ...prev, [field]: undefined }));
       return true;
-    } catch (e) {
-      setJsonErrors(prev => ({ ...prev, [field]: 'Invalid JSON format' }));
+    } catch (error) {
+      setJsonErrors(prev => ({ ...prev, [field]: `Invalid JSON: ${error.message}` }));
       return false;
     }
   };
@@ -340,30 +376,6 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                 {/* Right Column */}
                 <div className="space-y-6">
                   <div className="space-y-4">
-                    <Label htmlFor="image" className="text-base font-semibold text-gray-900">
-                      Main Image URL
-                    </Label>
-                    <div className="space-y-4">
-                      <Input
-                        id="image"
-                        value={formData.image ?? ''}
-                        onChange={(e) => handleInputChange('image', e.target.value)}
-                        placeholder="Enter image URL"
-                        className="w-full"
-                      />
-                      {formData.image && (
-                        <div className="relative aspect-square w-full rounded-lg border-2 border-dashed border-gray-200 p-2">
-                          <img
-                            src={formData.image}
-                            alt="Product preview"
-                            className="h-full w-full object-contain rounded-lg"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
                     <Label htmlFor="brand" className="text-base font-semibold text-gray-900">
                       Brand
                     </Label>
@@ -400,64 +412,104 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="isAvailable"
+                        checked={formData.isAvailable}
+                        onCheckedChange={(checked) => handleInputChange('isAvailable', checked as boolean)}
+                      />
+                      <Label htmlFor="isAvailable">Available for sale</Label>
+                    </div>
+                  </div>
                 </div>
               </div>
             </TabsContent>
 
             <TabsContent value="media" className="space-y-4">
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-medium">Media</h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <ImageIcon className="w-4 h-4" />
-                    Add Media
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-4 gap-4">
-                  {JSON.parse(formData.images || '[]').map((url: string, index: number) => (
-                    <div key={index} className="relative group aspect-square">
-                      <img
-                        src={url}
-                        alt={`Product image ${index + 1}`}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg">
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
-                          onClick={() => {
-                            const images = JSON.parse(formData.images || '[]');
-                            images.splice(index, 1);
-                            handleInputChange('images', JSON.stringify(images));
-                          }}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Main Image</h3>
+                  <div className="space-y-4">
+                    <Input
+                      id="image"
+                      value={formData.image ?? ''}
+                      onChange={(e) => handleInputChange('image', e.target.value)}
+                      placeholder="Enter main image URL"
+                      className="w-full"
+                    />
+                    {formData.image && (
+                      <div className="relative aspect-square w-64 rounded-lg border-2 border-dashed border-gray-200 p-2">
+                        <img
+                          src={formData.image}
+                          alt="Product preview"
+                          className="h-full w-full object-contain rounded-lg"
+                        />
                       </div>
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="images">Image URLs (One per line)</Label>
-                  <Textarea
-                    id="images"
-                    value={imagesToText(formData.images || '[]')}
-                    onChange={(e) => handleInputChange('images', textToImages(e.target.value))}
-                    placeholder="Enter image URLs"
-                    className="h-[150px]"
-                  />
-                  {jsonErrors.images && (
-                    <p className="text-sm text-red-500">{jsonErrors.images}</p>
-                  )}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">Additional Images</h3>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                      Add Media
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-4">
+                    {parseImages(formData.images || '[]').map((url: string, index: number) => (
+                      <div key={index} className="relative group aspect-square">
+                        <img
+                          src={url}
+                          alt={`Product image ${index + 1}`}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
+                            onClick={() => {
+                              const images = parseImages(formData.images || '[]');
+                              images.splice(index, 1);
+                              handleInputChange('images', JSON.stringify(images));
+                            }}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="images">Image URLs (One per line)</Label>
+                    <Textarea
+                      id="images"
+                      value={imagesToText(formData.images || '[]')}
+                      onChange={(e) => handleInputChange('images', textToImages(e.target.value))}
+                      placeholder="Enter image URLs (press Enter for new line)"
+                      className="h-[150px] whitespace-pre"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.stopPropagation();
+                        }
+                      }}
+                    />
+                    {jsonErrors.images && (
+                      <p className="text-sm text-red-500">{jsonErrors.images}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </TabsContent>
@@ -546,8 +598,8 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {variants.map((variant, index) => (
-                        <tr key={variant.id} className="hover:bg-gray-50">
+                      {Array.isArray(variants) && variants.map((variant, index) => (
+                        <tr key={variant.id || index} className="hover:bg-gray-50">
                           <td className="px-4 py-2 text-gray-500">{variant.id}</td>
                           <td className="px-4 py-2">{variant.name}</td>
                           <td className="px-4 py-2">${variant.price}</td>
@@ -581,18 +633,6 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
 
             <TabsContent value="availability" className="space-y-4">
               <div className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Sales Channels</h3>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="isAvailable"
-                      checked={formData.isAvailable}
-                      onCheckedChange={(checked) => handleInputChange('isAvailable', checked as boolean)}
-                    />
-                    <Label htmlFor="isAvailable">Available for sale</Label>
-                  </div>
-                </div>
-
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Inventory & Shipping</h3>
                   <div className="space-y-2">
@@ -634,22 +674,36 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
                       />
                       <Label htmlFor="requires_shipping">This is a physical product</Label>
                     </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="tax_included"
+                        checked={features.tax_included}
+                        onCheckedChange={(checked) => {
+                          const newFeatures = { ...features, tax_included: checked as boolean };
+                          setFeatures(newFeatures);
+                          handleInputChange('features', JSON.stringify(newFeatures));
+                        }}
+                      />
+                      <Label htmlFor="tax_included">Charge tax on this product</Label>
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Pricing</h3>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="tax_included"
-                      checked={features.tax_included}
-                      onCheckedChange={(checked) => {
-                        const newFeatures = { ...features, tax_included: checked as boolean };
-                        setFeatures(newFeatures);
-                        handleInputChange('features', JSON.stringify(newFeatures));
-                      }}
+                  <h3 className="text-lg font-medium">Metadata</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="metadata">Custom Metadata (JSON)</Label>
+                    <Textarea
+                      id="metadata"
+                      value={formData.metadata}
+                      onChange={(e) => handleInputChange('metadata', e.target.value)}
+                      placeholder="Enter metadata in JSON format"
+                      className="h-[200px] font-mono"
                     />
-                    <Label htmlFor="tax_included">Charge tax on this product</Label>
+                    {jsonErrors.metadata && (
+                      <p className="text-sm text-red-500">{jsonErrors.metadata}</p>
+                    )}
                   </div>
                 </div>
               </div>
