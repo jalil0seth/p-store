@@ -99,7 +99,7 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
   const [type, setType] = useState('');
-  const [activeTab, setActiveTab] = useState<string>("basic");
+  const [activeTab, setActiveTab] = useState<string>('basic');
   const [features, setFeatures] = useState<ProductFeatures>(defaultFeatures);
   const [jsonErrors, setJsonErrors] = useState<{
     images?: string;
@@ -115,8 +115,14 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
+    // Ensure Basic tab is always the default when modal opens
     if (open) {
-      setActiveTab("basic"); // Reset to basic tab when modal opens
+      setActiveTab('basic');
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
       if (product) {
         try {
           const parsedVariants = parseVariants(product.variants || '[]').map((variant: Variant) => ({

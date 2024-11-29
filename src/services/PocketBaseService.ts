@@ -329,12 +329,23 @@ export class PocketBaseService {
         }
     }
 
-    async deleteProduct(id: string) {
+    async deleteProduct(id: string | any) {
         try {
+            // Ensure we have a string ID
+            const productId = typeof id === 'string' 
+                ? id 
+                : (id as any).id;
+
+            if (!productId) {
+                throw new Error('Invalid product ID');
+            }
+
             await this.ensureAuthenticated();
 
+            console.log('Attempting to delete product with ID:', productId);
+
             const response = await fetch(
-                `${PocketBaseService.BASE_URL}/api/collections/store_products/records/${id}`,
+                `${PocketBaseService.BASE_URL}/api/collections/store_products/records/${productId}`,
                 {
                     method: 'DELETE',
                     headers: this.getHeaders()
@@ -342,8 +353,12 @@ export class PocketBaseService {
             );
 
             if (!response.ok) {
-                throw new Error('Failed to delete product');
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Delete product error response:', errorData);
+                throw new Error(`Failed to delete product: ${errorData.message || 'Unknown error'}`);
             }
+
+            return true;
         } catch (error) {
             console.error('Failed to delete product:', error);
             throw error;

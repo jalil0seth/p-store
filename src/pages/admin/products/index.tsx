@@ -8,15 +8,32 @@ import { AddEditProductModal } from './components/AddEditProductModal';
 import { BulkAddModal } from './components/BulkAddModal';
 import { Product } from '@/types';
 import { useProductStore } from '@/store/productStore';
+import { llmService } from '@/services/llmService'; // Assuming llmService is defined in this file
 
 const ProductsPage: React.FC = () => {
-  const { products, loading, error, fetchProducts, updateProduct, deleteProduct } = useProductStore();
+  const { products, loading, error, fetchProducts, updateProduct, deleteProduct, createProduct } = useProductStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isBulkAddOpen, setIsBulkAddOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [bulkAddInput, setBulkAddInput] = useState('');
+  const [bulkAddProgress, setBulkAddProgress] = useState<{
+    total: number;
+    completed: number;
+    status: 'idle' | 'generating' | 'creating' | 'completed' | 'error';
+    products: Array<{
+      name: string;
+      status: 'pending' | 'generating' | 'generated' | 'creating' | 'created' | 'error';
+      error?: string;
+    }>;
+  }>({
+    total: 0,
+    completed: 0,
+    status: 'idle',
+    products: []
+  });
 
   useEffect(() => {
     fetchProducts(searchTerm ? `name ~ "${searchTerm}" || description ~ "${searchTerm}"` : '');
@@ -56,15 +73,107 @@ const ProductsPage: React.FC = () => {
 
   const handleBulkAdd = async (products: Partial<Product>[]) => {
     try {
-      await Promise.all(products.map(product => 
-        useProductStore.getState().createProduct(product.name || '', product.status || 'draft')
-      ));
-      toast.success(`${products.length} products created successfully`);
+      // Initialize progress tracking
+      setBulkAddProgress({
+        total: products.length,
+        completed: 0,
+        status: 'generating',
+        products: products.map(p => ({ 
+          name: p.name || 'Unknown Product', 
+          status: 'pending' 
+        }))
+      });
+
+      // Process products sequentially
+      const generatedProducts: Partial<Product>[] = [];
+
+      for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        
+        // Update status to generating for this product
+        setBulkAddProgress(prev => ({
+          ...prev,
+          products: prev.products.map((p, index) => 
+            index === i ? { ...p, status: 'generating' } : p
+          )
+        }));
+
+        try {
+          // Generate product details
+          const productData = await llmService.generateProductContent(product.name || '');
+
+          // Update status to generated
+          setBulkAddProgress(prev => ({
+            ...prev,
+            products: prev.products.map((p, index) => 
+              index === i ? { ...p, status: 'generated' } : p
+            )
+          }));
+
+          // Update status to creating
+          setBulkAddProgress(prev => ({
+            ...prev,
+            products: prev.products.map((p, index) => 
+              index === i ? { ...p, status: 'creating' } : p
+            )
+          }));
+
+          // Create product
+          const createdProduct = await createProduct(productData);
+
+          // Update status to created and increment completed
+          setBulkAddProgress(prev => ({
+            ...prev,
+            completed: prev.completed + 1,
+            products: prev.products.map((p, index) => 
+              index === i ? { ...p, status: 'created' } : p
+            )
+          }));
+
+          generatedProducts.push(createdProduct);
+        } catch (error) {
+          console.error(`Error processing product ${product.name}:`, error);
+          
+          // Update status to error
+          setBulkAddProgress(prev => ({
+            ...prev,
+            products: prev.products.map((p, index) => 
+              index === i ? { 
+                ...p, 
+                status: 'error', 
+                error: error instanceof Error ? error.message : 'Unknown error' 
+              } : p
+            )
+          }));
+        }
+      }
+
+      // Final status update
+      setBulkAddProgress(prev => ({
+        ...prev,
+        status: generatedProducts.length === products.length ? 'completed' : 'error'
+      }));
+
+      // Show appropriate notification
+      if (generatedProducts.length === products.length) {
+        toast.success(`Successfully created ${generatedProducts.length} products`);
+      } else {
+        toast.error(`Created ${generatedProducts.length} out of ${products.length} products`);
+      }
+
+      // Reset form and fetch products
       setIsBulkAddOpen(false);
+      setBulkAddInput('');
       await fetchProducts();
     } catch (error) {
-      console.error('Error creating products:', error);
-      toast.error('Failed to create products');
+      console.error('Bulk add failed:', error);
+      
+      setBulkAddProgress(prev => ({
+        ...prev,
+        status: 'error'
+      }));
+
+      toast.error('Failed to add products. Please try again.');
     }
   };
 
@@ -171,10 +280,13 @@ const ProductsPage: React.FC = () => {
         product={editingProduct}
       />
 
-      <BulkAddModal
+      <BulkAddModal 
         open={isBulkAddOpen}
         onOpenChange={setIsBulkAddOpen}
-        onAdd={handleBulkAdd}
+        onAdd={(products: Partial<Product>[]) => handleBulkAdd(products)}
+        onChange={(e) => setBulkAddInput(e.target.value)}
+        value={bulkAddInput}
+        bulkAddProgress={bulkAddProgress}
       />
     </div>
   );

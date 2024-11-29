@@ -129,6 +129,13 @@ export class LLMService {
         }
     }
 
+    private generateSlug(name: string): string {
+        return name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
     async generateProductContent(productName: string): Promise<any> {
         const systemPrompt = `You are a helpful AI that generates product content. Please generate realistic product content based on the product name. The response should be in JSON format and match this schema:
 {
@@ -186,23 +193,33 @@ Please ensure:
                 featured: 0, // Always set to 0 for new products
                 metadata: JSON.stringify(this.standardizeMetadata(response.metadata)),
                 variants: JSON.stringify(this.standardizeVariants(response.name, response.variants || [])),
-                isAvailable: 0 // Always set to 0 for new products
+                isAvailable: 0, // Always set to 0 for new products
+                slug: this.generateSlug(response.name || productName)
             };
 
             return standardizedResponse;
         } catch (error) {
             console.error('Error generating product content:', error);
             // Return default values if generation fails
+            const defaultName = productName;
             return {
-                name: productName,
+                name: defaultName,
                 brand: '',
                 description: '',
                 type: '',
                 category: '',
                 featured: 0,
-                metadata: JSON.stringify(this.standardizeMetadata({})),
-                variants: JSON.stringify(this.standardizeVariants(productName, [])),
-                isAvailable: 0
+                metadata: JSON.stringify({
+                    sales_pitch: `Discover the potential of ${defaultName}`,
+                    bullet_points: ['Powerful', 'Intuitive', 'Reliable']
+                }),
+                variants: JSON.stringify([{
+                    name: 'Standard',
+                    price: 49.99,
+                    description: 'Standard version'
+                }]),
+                isAvailable: 0,
+                slug: this.generateSlug(defaultName)
             };
         }
     }
