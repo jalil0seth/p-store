@@ -50,9 +50,11 @@ export default function ProductGrid({ products, loading }: ProductGridProps) {
     <section id="products" className="py-4">
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
-          ))}
+          {products
+            .filter(product => product.isAvailable === 1)
+            .map((product) => (
+              <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+            ))}
         </div>
       </div>
     </section>
