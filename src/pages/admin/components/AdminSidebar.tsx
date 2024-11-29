@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { FiMenu, FiX, FiUsers, FiBox, FiHome, FiSettings } from 'react-icons/fi';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FiMenu, FiX, FiUsers, FiBox, FiHome, FiSettings, FiLogOut, FiArrowLeft } from 'react-icons/fi';
+import { useAuthStore } from '@/store/authStore';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -9,6 +10,8 @@ interface AdminSidebarProps {
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuthStore();
 
   const menuItems = [
     { path: '/admin', icon: FiHome, label: 'Dashboard' },
@@ -24,6 +27,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
     return location.pathname.startsWith(path);
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <>
       <div
@@ -35,35 +43,51 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
       <aside
         className={`fixed top-0 left-0 z-50 h-full bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        } flex flex-col`}
         style={{ width: '250px' }}
       >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-semibold text-gray-800">Admin Panel</h2>
+        <div className="flex-1">
           <button
             onClick={onToggle}
-            className="p-2 rounded-md lg:hidden hover:bg-gray-100"
+            className="p-4 lg:hidden hover:bg-gray-100 w-full text-right"
           >
             {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
+          <nav className="mt-4">
+            <ul>
+              {menuItems.map((item) => (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className={`flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 ${
+                      isActive(item.path) ? 'bg-gray-100 font-semibold' : ''
+                    }`}
+                  >
+                    <item.icon className="w-5 h-5 mr-3" />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
-        <nav className="mt-4">
-          <ul>
-            {menuItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 ${
-                    isActive(item.path) ? 'bg-gray-100 font-semibold' : ''
-                  }`}
-                >
-                  <item.icon className="w-5 h-5 mr-3" />
-                  <span>{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        
+        <div className="border-t p-4 space-y-2">
+          <Link
+            to="/"
+            className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+          >
+            <FiArrowLeft className="w-5 h-5 mr-3" />
+            <span>Return to Store</span>
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
+          >
+            <FiLogOut className="w-5 h-5 mr-3" />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </aside>
     </>
   );

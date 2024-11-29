@@ -210,25 +210,19 @@ const ProductsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-white">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Products</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage your product inventory
-          </p>
+    <div className="h-full">
+      <div className="flex justify-between items-center space-x-4 mb-6">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Search products..."
+            className="pl-10 w-full bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
         <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search products..."
-              className="pl-10 w-64 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
           <Button
             onClick={() => setIsBulkAddOpen(true)}
             variant="outline"

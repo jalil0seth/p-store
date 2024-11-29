@@ -63,8 +63,21 @@ export function App() {
 
   return (
     <Router>
-      <Toaster position="top-right" />
-      <AppContent theme={theme} />
+      <div className="relative">
+        <Toaster 
+          position="top-right" 
+          closeButton
+          richColors
+          theme={theme === 'dark' ? 'dark' : 'light'}
+          containerStyle={{
+            position: 'fixed',
+            top: '1rem',
+            right: '1rem',
+            zIndex: 9999,
+          }}
+        />
+        <AppContent theme={theme} />
+      </div>
     </Router>
   );
 }
@@ -73,13 +86,16 @@ function AppContent({ theme }: { theme: string }) {
   const location = useLocation();
   const { isAuthenticated, user } = useAuthStore();
   const { isOpen: isCartOpen, setIsOpen: setIsCartOpen } = useCartStore();
+  const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
     <div className={`min-h-screen ${theme}`}>
+      {!isAdminRoute && (
         <>
           <Header />
           <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         </>
+      )}
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -114,8 +130,8 @@ function AppContent({ theme }: { theme: string }) {
           />
         </Routes>
       </Suspense>
-      {!location.pathname.startsWith('/admin') && <Footer />}
-      <MobileCTA />
+      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <MobileCTA />}
     </div>
   );
 }

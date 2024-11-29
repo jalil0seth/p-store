@@ -413,427 +413,421 @@ export const AddEditProductModal: React.FC<AddEditProductModalProps> = ({
         <DialogHeader className="border-b pb-4">
           <DialogTitle className="text-xl font-semibold text-gray-900">{product ? 'Edit' : 'Add'} Product</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-lg">
-              <TabsTrigger value="basic" className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm">
-                Basic
-              </TabsTrigger>
-              <TabsTrigger value="variants" className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm">
-                Variants
-              </TabsTrigger>
-              <TabsTrigger value="images" className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm">
-                Images
-              </TabsTrigger>
-              <TabsTrigger value="advanced" className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm">
-                Advanced
-              </TabsTrigger>
+        <div className="space-y-6 py-4">
+          <Tabs defaultValue="basic" value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="basic">Basic</TabsTrigger>
+              <TabsTrigger value="variants">Variants</TabsTrigger>
+              <TabsTrigger value="images">Images</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="basic" className="space-y-6 pt-4">
-              <div className="grid grid-cols-3 gap-6">
-                {/* Left Column */}
-                <div className="col-span-2 space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="name" className="text-base font-semibold text-gray-900">
-                        Product Name
-                      </Label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleGenerateContent}
-                        disabled={isGenerating}
-                        className="flex items-center gap-2"
-                      >
-                        <Wand2 className="w-4 h-4" />
-                        {isGenerating ? "Generating..." : "Generate Content"}
-                      </Button>
-                    </div>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Enter product name"
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div className="space-y-4">
-                    <Label htmlFor="description" className="text-base font-semibold text-gray-900">
-                      Description
-                    </Label>
-                    <Textarea
-                      id="description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Enter product description"
-                      className="h-[200px] resize-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <Label htmlFor="brand" className="text-base font-semibold text-gray-900">
-                      Brand
-                    </Label>
-                    <Input
-                      id="brand"
-                      value={brand}
-                      onChange={(e) => setBrand(e.target.value)}
-                      placeholder="Enter brand name"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+            <div className="mt-6">
+              <TabsContent value="basic" className="space-y-6">
+                <div className="grid grid-cols-3 gap-6">
+                  {/* Left Column */}
+                  <div className="col-span-2 space-y-6">
                     <div className="space-y-4">
-                      <Label htmlFor="category" className="text-base font-semibold text-gray-900">
-                        Category
-                      </Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="name" className="text-base font-semibold text-gray-900">
+                          Product Name
+                        </Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleGenerateContent}
+                          disabled={isGenerating}
+                          className="flex items-center gap-2"
+                        >
+                          <Wand2 className="w-4 h-4" />
+                          {isGenerating ? "Generating..." : "Generate Content"}
+                        </Button>
+                      </div>
                       <Input
-                        id="category"
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        placeholder="Enter category"
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Enter product name"
+                        className="w-full"
                       />
                     </div>
 
                     <div className="space-y-4">
-                      <Label htmlFor="type" className="text-base font-semibold text-gray-900">
-                        Type
+                      <Label htmlFor="description" className="text-base font-semibold text-gray-900">
+                        Description
                       </Label>
-                      <Input
-                        id="type"
-                        value={type}
-                        onChange={(e) => setType(e.target.value)}
-                        placeholder="Enter type"
+                      <Textarea
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Enter product description"
+                        className="h-[200px] resize-none"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <Label className="text-base font-semibold text-gray-900">
-                      Product Status
-                    </Label>
+                  {/* Right Column */}
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <Label htmlFor="brand" className="text-base font-semibold text-gray-900">
+                        Brand
+                      </Label>
+                      <Input
+                        id="brand"
+                        value={brand}
+                        onChange={(e) => setBrand(e.target.value)}
+                        placeholder="Enter brand name"
+                      />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="isAvailable">Availability</Label>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="isAvailable"
-                            checked={isAvailable === 1}
-                            onCheckedChange={(checked) => setIsAvailable(checked ? 1 : 0)}
-                          />
-                          <label
-                            htmlFor="isAvailable"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            on
-                          </label>
-                        </div>
+                      <div className="space-y-4">
+                        <Label htmlFor="category" className="text-base font-semibold text-gray-900">
+                          Category
+                        </Label>
+                        <Input
+                          id="category"
+                          value={category}
+                          onChange={(e) => setCategory(e.target.value)}
+                          placeholder="Enter category"
+                        />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="featured">Featured</Label>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="featured"
-                            checked={features?.featured === 1}
-                            onCheckedChange={(checked) => {
-                              setFeatures(prev => ({
-                                ...prev,
-                                featured: checked ? 1 : 0
-                              }));
-                            }}
-                          />
-                          <label
-                            htmlFor="featured"
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            on
-                          </label>
-                        </div>
+                      <div className="space-y-4">
+                        <Label htmlFor="type" className="text-base font-semibold text-gray-900">
+                          Type
+                        </Label>
+                        <Input
+                          id="type"
+                          value={type}
+                          onChange={(e) => setType(e.target.value)}
+                          placeholder="Enter type"
+                        />
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
 
-            <TabsContent value="images" className="space-y-4">
-              <div className="space-y-4">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Main Image</h3>
-                  <div className="space-y-4">
-                    <Input
-                      id="image"
-                      value={image}
-                      onChange={(e) => setImage(e.target.value)}
-                      placeholder="Enter main image URL"
-                      className="w-full"
-                    />
-                    {image && (
-                      <div className="relative aspect-square w-64 rounded-lg border-2 border-dashed border-gray-200 p-2">
-                        <img
-                          src={image}
-                          alt="Product preview"
-                          className="h-full w-full object-contain rounded-lg"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    <div className="space-y-4">
+                      <Label className="text-base font-semibold text-gray-900">
+                        Product Status
+                      </Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="isAvailable">Availability</Label>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="isAvailable"
+                              checked={isAvailable === 1}
+                              onCheckedChange={(checked) => setIsAvailable(checked ? 1 : 0)}
+                            />
+                            <label
+                              htmlFor="isAvailable"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              on
+                            </label>
+                          </div>
+                        </div>
 
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium">Additional Images</h3>
-                    {!editingImage && editingImageIndex === null && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingImage('');
-                          setEditingImageIndex(null);
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <ImageIcon className="w-4 h-4" />
-                        Add Image
-                      </Button>
-                    )}
-                  </div>
-
-                  {(editingImage !== null || editingImageIndex !== null) && (
-                    <div className="space-y-4 p-4 border rounded-lg">
-                      <div className="space-y-2">
-                        <Label>Image URL</Label>
-                        <Input
-                          value={editingImage}
-                          onChange={(e) => setEditingImage(e.target.value)}
-                          placeholder="Enter image URL"
-                          className="w-full"
-                          autoFocus
-                        />
-                        {editingImage && (
-                          <div className="relative aspect-square w-48 rounded-lg border-2 border-dashed border-gray-200 p-2">
-                            <img
-                              src={editingImage}
-                              alt="Image preview"
-                              className="h-full w-full object-contain rounded-lg"
-                              onError={(e) => {
-                                const img = e.target as HTMLImageElement;
-                                img.src = 'https://placehold.co/400x400?text=Invalid+Image';
+                        <div className="space-y-2">
+                          <Label htmlFor="featured">Featured</Label>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="featured"
+                              checked={features?.featured === 1}
+                              onCheckedChange={(checked) => {
+                                setFeatures(prev => ({
+                                  ...prev,
+                                  featured: checked ? 1 : 0
+                                }));
                               }}
                             />
+                            <label
+                              htmlFor="featured"
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              on
+                            </label>
                           </div>
-                        )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="images" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Main Image</h3>
+                    <div className="space-y-4">
+                      <Input
+                        id="image"
+                        value={image}
+                        onChange={(e) => setImage(e.target.value)}
+                        placeholder="Enter main image URL"
+                        className="w-full"
+                      />
+                      {image && (
+                        <div className="relative aspect-square w-64 rounded-lg border-2 border-dashed border-gray-200 p-2">
+                          <img
+                            src={image}
+                            alt="Product preview"
+                            className="h-full w-full object-contain rounded-lg"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-medium">Additional Images</h3>
+                      {!editingImage && editingImageIndex === null && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingImage('');
+                            setEditingImageIndex(null);
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <ImageIcon className="w-4 h-4" />
+                          Add Image
+                        </Button>
+                      )}
+                    </div>
+
+                    {(editingImage !== null || editingImageIndex !== null) && (
+                      <div className="space-y-4 p-4 border rounded-lg">
+                        <div className="space-y-2">
+                          <Label>Image URL</Label>
+                          <Input
+                            value={editingImage}
+                            onChange={(e) => setEditingImage(e.target.value)}
+                            placeholder="Enter image URL"
+                            className="w-full"
+                            autoFocus
+                          />
+                          {editingImage && (
+                            <div className="relative aspect-square w-48 rounded-lg border-2 border-dashed border-gray-200 p-2">
+                              <img
+                                src={editingImage}
+                                alt="Image preview"
+                                className="h-full w-full object-contain rounded-lg"
+                                onError={(e) => {
+                                  const img = e.target as HTMLImageElement;
+                                  img.src = 'https://placehold.co/400x400?text=Invalid+Image';
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingImage('');
+                              setEditingImageIndex(null);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={handleImageSubmit}
+                            disabled={!editingImage.trim()}
+                          >
+                            {editingImageIndex !== null ? 'Update' : 'Add'} Image
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-4 gap-4">
+                      {Array.isArray(images) && images.map((url, index) => (
+                        <div key={index} className="relative group aspect-square">
+                          <img
+                            src={url}
+                            alt={`Product image ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg">
+                            <div className="absolute top-2 right-2 space-x-2 opacity-0 group-hover:opacity-100">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditImage(index)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleImageDelete(index)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="variants" className="space-y-6 pt-4">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium">Product Variants</h3>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddVariant}
+                      className="flex items-center gap-2"
+                    >
+                      Add Variant
+                    </Button>
+                  </div>
+
+                  {editingVariant && (
+                    <div className="space-y-4 p-4 border rounded-lg">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Name</Label>
+                          <Input
+                            value={editingVariant.name}
+                            onChange={(e) => handleVariantChange('name', e.target.value)}
+                            placeholder="Variant name"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Price</Label>
+                          <Input
+                            type="number"
+                            value={editingVariant.price}
+                            onChange={(e) => handleVariantChange('price', e.target.value)}
+                            placeholder="Price"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Original Price</Label>
+                          <Input
+                            type="number"
+                            value={editingVariant.original_price}
+                            onChange={(e) => handleVariantChange('original_price', e.target.value)}
+                            placeholder="Original price"
+                          />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="available"
+                            checked={editingVariant.available}
+                            onCheckedChange={(checked) => handleVariantChange('available', checked)}
+                          />
+                          <Label htmlFor="available">Available</Label>
+                        </div>
                       </div>
                       <div className="flex justify-end space-x-2">
                         <Button
                           type="button"
                           variant="outline"
                           onClick={() => {
-                            setEditingImage('');
-                            setEditingImageIndex(null);
+                            setEditingVariant(null);
+                            setEditingVariantIndex(null);
                           }}
                         >
                           Cancel
                         </Button>
-                        <Button
-                          type="button"
-                          onClick={handleImageSubmit}
-                          disabled={!editingImage.trim()}
-                        >
-                          {editingImageIndex !== null ? 'Update' : 'Add'} Image
+                        <Button type="button" onClick={handleVariantSubmit}>
+                          {editingVariantIndex !== null ? 'Update' : 'Add'} Variant
                         </Button>
                       </div>
                     </div>
                   )}
-                  <div className="grid grid-cols-4 gap-4">
-                    {Array.isArray(images) && images.map((url, index) => (
-                      <div key={index} className="relative group aspect-square">
-                        <img
-                          src={url}
-                          alt={`Product image ${index + 1}`}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg">
-                          <div className="absolute top-2 right-2 space-x-2 opacity-0 group-hover:opacity-100">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditImage(index)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleImageDelete(index)}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
 
-            <TabsContent value="variants" className="space-y-6 pt-4">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-medium">Product Variants</h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddVariant}
-                    className="flex items-center gap-2"
-                  >
-                    Add Variant
-                  </Button>
-                </div>
-
-                {editingVariant && (
-                  <div className="space-y-4 p-4 border rounded-lg">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Name</Label>
-                        <Input
-                          value={editingVariant.name}
-                          onChange={(e) => handleVariantChange('name', e.target.value)}
-                          placeholder="Variant name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Price</Label>
-                        <Input
-                          type="number"
-                          value={editingVariant.price}
-                          onChange={(e) => handleVariantChange('price', e.target.value)}
-                          placeholder="Price"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Original Price</Label>
-                        <Input
-                          type="number"
-                          value={editingVariant.original_price}
-                          onChange={(e) => handleVariantChange('original_price', e.target.value)}
-                          placeholder="Original price"
-                        />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="available"
-                          checked={editingVariant.available}
-                          onCheckedChange={(checked) => handleVariantChange('available', checked)}
-                        />
-                        <Label htmlFor="available">Available</Label>
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingVariant(null);
-                          setEditingVariantIndex(null);
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button type="button" onClick={handleVariantSubmit}>
-                        {editingVariantIndex !== null ? 'Update' : 'Add'} Variant
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="rounded-md border">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-sm font-medium">ID</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium">Name</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium">Price</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium">Original</th>
-                        <th className="px-4 py-2 text-left text-sm font-medium">Available</th>
-                        <th className="px-4 py-2 text-right text-sm font-medium">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {Array.isArray(variants) && variants.map((variant, index) => (
-                        <tr key={variant.id || index} className="hover:bg-gray-50">
-                          <td className="px-4 py-2 text-gray-500 text-xs">{variant.id}</td>
-                          <td className="px-4 py-2">{variant.name}</td>
-                          <td className="px-4 py-2">${variant.price}</td>
-                          <td className="px-4 py-2">${variant.original_price}</td>
-                          <td className="px-4 py-2">{variant.available ? 'Yes' : 'No'}</td>
-                          <td className="px-4 py-2 text-right space-x-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditVariant(index)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleVariantDelete(index)}
-                            >
-                              Delete
-                            </Button>
-                          </td>
+                  <div className="rounded-md border">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-2 text-left text-sm font-medium">ID</th>
+                          <th className="px-4 py-2 text-left text-sm font-medium">Name</th>
+                          <th className="px-4 py-2 text-left text-sm font-medium">Price</th>
+                          <th className="px-4 py-2 text-left text-sm font-medium">Original</th>
+                          <th className="px-4 py-2 text-left text-sm font-medium">Available</th>
+                          <th className="px-4 py-2 text-right text-sm font-medium">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="advanced" className="space-y-4">
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Metadata</h3>
-                  <div className="space-y-2">
-                    <Label htmlFor="metadata">Custom Metadata (JSON)</Label>
-                    <Textarea
-                      id="metadata"
-                      value={JSON.stringify(features, null, 2)}
-                      onChange={(e) => {
-                        try {
-                          const parsed = JSON.parse(e.target.value);
-                          setFeatures(parsed);
-                          setJsonErrors((prev) => ({ ...prev, metadata: null }));
-                        } catch (error) {
-                          console.error('Error parsing metadata:', error);
-                          setJsonErrors((prev) => ({ ...prev, metadata: 'Invalid JSON format' }));
-                        }
-                      }}
-                      placeholder="Enter metadata in JSON format"
-                      className="h-[200px] font-mono"
-                    />
-                    {jsonErrors.metadata && (
-                      <p className="text-sm text-red-500">{jsonErrors.metadata}</p>
-                    )}
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {Array.isArray(variants) && variants.map((variant, index) => (
+                          <tr key={variant.id || index} className="hover:bg-gray-50">
+                            <td className="px-4 py-2 text-gray-500 text-xs">{variant.id}</td>
+                            <td className="px-4 py-2">{variant.name}</td>
+                            <td className="px-4 py-2">${variant.price}</td>
+                            <td className="px-4 py-2">${variant.original_price}</td>
+                            <td className="px-4 py-2">{variant.available ? 'Yes' : 'No'}</td>
+                            <td className="px-4 py-2 text-right space-x-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditVariant(index)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleVariantDelete(index)}
+                              >
+                                Delete
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
+
+              <TabsContent value="advanced" className="space-y-4">
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Metadata</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="metadata">Custom Metadata (JSON)</Label>
+                      <Textarea
+                        id="metadata"
+                        value={JSON.stringify(features, null, 2)}
+                        onChange={(e) => {
+                          try {
+                            const parsed = JSON.parse(e.target.value);
+                            setFeatures(parsed);
+                            setJsonErrors((prev) => ({ ...prev, metadata: null }));
+                          } catch (error) {
+                            console.error('Error parsing metadata:', error);
+                            setJsonErrors((prev) => ({ ...prev, metadata: 'Invalid JSON format' }));
+                          }
+                        }}
+                        placeholder="Enter metadata in JSON format"
+                        className="h-[200px] font-mono"
+                      />
+                      {jsonErrors.metadata && (
+                        <p className="text-sm text-red-500">{jsonErrors.metadata}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </div>
           </Tabs>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
