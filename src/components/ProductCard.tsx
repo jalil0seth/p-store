@@ -78,7 +78,7 @@ export default function ProductCard({ product, layout = true }: ProductCardProps
       price: selectedVariant?.price || product.price || 0,
       originalPrice: selectedVariant?.original_price || selectedVariant?.price || product.originalPrice || product.price || 0,
       discount: selectedVariant?.discountPercentage || product.discount || 0,
-      image: product.images?.[0] || product.image,
+      image: product.image || product.images?.[0],
       description: product.description,
       variant: selectedVariant ? {
         name: selectedVariant.name,

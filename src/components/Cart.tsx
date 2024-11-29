@@ -15,6 +15,23 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     currentStep,
     setCurrentStep
   } = useCartStore();
+
+  const parseImages = (imagesStr: string | string[]): string[] => {
+    if (Array.isArray(imagesStr)) return imagesStr;
+    try {
+      const parsed = JSON.parse(imagesStr || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error('Error parsing images:', error);
+      return [];
+    }
+  };
+
+  const getImageUrl = (item: any): string => {
+    const images = parseImages(item.images || '[]');
+    return item.image || images[0] || 'https://placehold.co/100x100?text=No+Image';
+  };
+
   const [customerInfo, setCustomerInfo] = useState({
     email: '',
     name: '',
@@ -89,44 +106,105 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     switch (currentStep) {
       case 0: // Cart
         return (
-          <div className="p-4 space-y-4">
-            {items.map((item) => (
-              <motion.div
-                key={item.id}
-                layout
-                className={`flex items-center space-x-4 py-4 bg-gray-50 rounded-lg px-2 ${
-                  highlightedItemId === item.id 
-                    ? 'bg-primary-50 rounded-lg transition-colors duration-500'
-                    : ''
-                }`}
-              >
-                <div className="flex-1">
-                  <h3 className="font-medium">{item.name}</h3>
-                  <p className="text-gray-600">${item.price}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => updateQuantity(item.id, Math.max(0, item.quantity - 1))}
-                    className="p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-8 text-center">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="p-1 text-red-500 hover:bg-red-50 rounded"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+          <div className="flex-1 overflow-y-auto px-4">
+            {items.map((item) => {
+              const savings = item.originalPrice && item.originalPrice > item.price 
+                ? (item.originalPrice - item.price) * item.quantity
+                : 0;
+              
+              return (
+                <motion.div
+                  key={`${item.id}-${item.variant?.name}`}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ 
+                    opacity: 1, 
+                    y: 0,
+                    scale: highlightedItemId === item.id ? 1.02 : 1,
+                    backgroundColor: highlightedItemId === item.id ? '#f3f4f6' : '#ffffff'
+                  }}
+                  className="relative py-4 border-b border-gray-100"
+                >
+                  <div className="flex gap-4">
+                    {/* Product Image */}
+                    <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
+                      <img
+                        src={getImageUrl(item)}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://placehold.co/100x100?text=No+Image';
+                        }}
+                      />
+                    </div>
+
+                    {/* Product Details */}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-1">
+                            <h3 className="text-base text-gray-900">{item.name}</h3>
+                            <span className="text-gray-500">-</span>
+                            {item.variant && (
+                              <span className="text-gray-500">
+                                {item.variant.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="text-gray-400 hover:text-gray-500"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+
+                      {/* Price and Quantity */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="p-1 rounded-md hover:bg-gray-100 border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={item.quantity <= 1}
+                          >
+                            <Minus size={16} className="text-gray-600" />
+                          </button>
+                          <span className="w-6 text-center text-sm">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="p-1 rounded-md hover:bg-gray-100 border border-gray-300"
+                          >
+                            <Plus size={16} className="text-gray-600" />
+                          </button>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex flex-col items-end">
+                            <div className="flex items-baseline gap-2">
+                              {item.originalPrice && item.originalPrice > item.price && (
+                                <div className="text-sm text-gray-500 line-through">
+                                  ${(item.originalPrice * item.quantity).toFixed(2)}
+                                </div>
+                              )}
+                              <div className="text-base text-primary-600">
+                                ${(item.price * item.quantity).toFixed(2)}
+                              </div>
+                            </div>
+                            {savings > 0 && (
+                              <div className="text-sm text-green-600">
+                                You save: ${savings.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+
           </div>
         );
 
@@ -370,13 +448,34 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                 )}
               </div>
 
-              <div className="sticky bottom-0 bg-white border-t p-4 space-y-4">
-                <div className="flex items-center justify-between text-lg font-bold">
+              <div className="sticky bottom-0 bg-white border-t px-4 py-4 space-y-3">
+                <div className="flex justify-between text-base">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium">
+                    ${items.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)}
+                  </span>
+                </div>
+                {items.some(item => item.originalPrice && item.originalPrice > item.price) && (
+                  <div className="flex justify-between text-base text-green-600">
+                    <span>Total Savings</span>
+                    <span className="font-medium">
+                      ${items.reduce((acc, item) => {
+                        const itemSavings = item.originalPrice && item.originalPrice > item.price
+                          ? (item.originalPrice - item.price) * item.quantity
+                          : 0;
+                        return acc + itemSavings;
+                      }, 0).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center text-lg font-bold pt-2 border-t border-gray-100">
                   <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span className="text-primary-600">
+                    ${items.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)}
+                  </span>
                 </div>
                 <button 
-                  className="w-full btn btn-primary space-x-2 py-3 disabled:opacity-50"
+                  className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-primary-700 transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={items.length === 0}
                   onClick={handleNext}
                 >

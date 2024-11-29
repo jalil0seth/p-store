@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+interface CartItemVariant {
+  name: string;
+  price: number;
+  discountPercentage: number;
+  billingCycle: 'monthly' | 'annual' | 'once';
+}
+
 interface CartItem {
   id: string;
   name: string;
@@ -10,6 +17,7 @@ interface CartItem {
   quantity: number;
   image?: string;
   description?: string;
+  variant?: CartItemVariant;
 }
 
 interface UserInfo {
@@ -48,61 +56,43 @@ export const useCartStore = create<CartState>()(
 
       addItem: (product) => {
         const currentItems = get().items;
-        const existingItem = currentItems.find(item => item.id === product.id);
+        const existingItem = currentItems.find(
+          item => item.id === product.id && 
+          item.variant?.name === product.variant?.name
+        );
 
-        let newItems;
         if (existingItem) {
-          newItems = currentItems.map(item =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          );
+          set({
+            items: currentItems.map(item =>
+              item.id === product.id && item.variant?.name === product.variant?.name
+                ? { ...item, quantity: item.quantity + 1 }
+                : item
+            ),
+            isOpen: true
+          });
         } else {
-          newItems = [...currentItems, { ...product, quantity: 1 }];
+          set({
+            items: [...currentItems, { ...product, quantity: 1 }],
+            isOpen: true
+          });
         }
-
-        const total = newItems.reduce((sum, item) => {
-          const itemPrice = item.discount 
-            ? item.price * (1 - item.discount / 100)
-            : item.price;
-          return sum + itemPrice * item.quantity;
-        }, 0);
-
-        set({
-          items: newItems,
-          total,
-          isOpen: true,
-          highlightedItemId: product.id,
-          currentStep: 0
-        });
-
-        // Clear highlight after 2 seconds
-        setTimeout(() => {
-          set({ highlightedItemId: null });
-        }, 2000);
       },
 
       removeItem: (id) => {
-        const newItems = get().items.filter(item => item.id !== id);
-        const total = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        set({ items: newItems, total });
+        set((state) => ({
+          items: state.items.filter((item) => item.id !== id),
+        }));
       },
 
       updateQuantity: (id, quantity) => {
-        if (quantity < 1) {
-          get().removeItem(id);
-          return;
-        }
-
-        const newItems = get().items.map(item =>
-          item.id === id ? { ...item, quantity } : item
-        );
-
-        const total = newItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        set({ items: newItems, total });
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === id ? { ...item, quantity } : item
+          ),
+        }));
       },
 
-      clearCart: () => set({ items: [], total: 0 }),
+      clearCart: () => set({ items: [] }),
       setIsOpen: (isOpen) => set({ isOpen }),
       setUserInfo: (info) => set({ userInfo: info }),
       setCurrentStep: (step) => set({ currentStep: step }),
@@ -113,8 +103,7 @@ export const useCartStore = create<CartState>()(
       partialize: (state) => ({
         items: state.items,
         userInfo: state.userInfo,
-        total: state.total
-      })
+      }),
     }
   )
 );
