@@ -2,27 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useProductStore } from '../store/productStore';
 import ProductGrid from './ProductGrid';
-
-const CATEGORIES = [
-  'All',
-  'Design',
-  'Development',
-  'Security',
-  'Collaboration',
-  'Business'
-];
+import { Button } from './ui/button';
 
 export default function FeaturedProducts() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const { products, fetchProducts, isLoading } = useProductStore();
+  const [categories, setCategories] = useState(['All']);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  const filteredProducts = products.filter(
-    product => selectedCategory === 'All' || product.category === selectedCategory
-  );
+  // Get unique categories from available products only
+  useEffect(() => {
+    if (products.length > 0) {
+      const availableProducts = products.filter(p => p.isAvailable === 1);
+      const uniqueCategories = ['All', ...new Set(availableProducts.map(p => p.category))];
+      setCategories(uniqueCategories);
+    }
+  }, [products]);
+
+  // Filter products based on category (only show available products)
+  const filteredProducts = products
+    .filter(product => product.isAvailable === 1)
+    .filter(product => {
+      if (selectedCategory === 'All') return true;
+      const productCategory = product.category?.trim().toLowerCase();
+      const selectedCat = selectedCategory.toLowerCase();
+      return productCategory === selectedCat;
+    });
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8">
@@ -41,19 +49,20 @@ export default function FeaturedProducts() {
           </p>
         </motion.div>
 
-        <div className="flex items-center justify-center space-x-2 mb-8 overflow-x-auto pb-4">
-          {CATEGORIES.map((category) => (
-            <button
+        <div className="flex justify-center gap-2 mb-8">
+          {categories.map((category) => (
+            <Button
               key={category}
+              variant={selectedCategory === category ? 'default' : 'ghost'}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === category
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-100'
+              className={`rounded-full px-6 py-2 ${
+                selectedCategory === category 
+                ? 'bg-primary text-white hover:bg-primary/90' 
+                : 'hover:bg-gray-100'
               }`}
             >
               {category}
-            </button>
+            </Button>
           ))}
         </div>
 
