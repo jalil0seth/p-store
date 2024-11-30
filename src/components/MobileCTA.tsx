@@ -1,34 +1,31 @@
 import React from 'react';
 import { ShoppingCart } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
 
 interface MobileCTAProps {
-  onOpenCart: () => void;
 }
 
-export default function MobileCTA({ onOpenCart }: MobileCTAProps) {
-  const items = useCartStore((state) => state.items);
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+export default function MobileCTA() {
+  const { items, setIsOpen } = useCartStore();
+  const totalItems = items.reduce((acc, item) => acc + (item.quantity || 0), 0);
+
+  const handleClick = () => {
+    setIsOpen(true);
+  };
 
   return (
-    <motion.div
-      initial={{ y: '100%' }}
-      animate={{ y: 0 }}
-      className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-lg md:hidden z-40"
+    <button
+      onClick={handleClick}
+      className="fixed bottom-4 right-4 bg-primary-600 text-white p-4 rounded-full shadow-lg hover:bg-primary-700 transition-colors duration-200 lg:hidden z-40"
     >
-      <button 
-        onClick={onOpenCart}
-        className="w-full btn btn-primary py-3 space-x-2"
-      >
-        <ShoppingCart className="w-5 h-5" />
-        <span>View Cart ({itemCount})</span>
-        {itemCount > 0 && (
-          <span className="text-sm">
-            Total: ${items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
-          </span>
+      <div className="relative">
+        <ShoppingCart className="w-6 h-6" />
+        {totalItems > 0 && (
+          <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            {totalItems}
+          </div>
         )}
-      </button>
-    </motion.div>
+      </div>
+    </button>
   );
 }

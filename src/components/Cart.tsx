@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Minus, Plus, CreditCard, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '../store/cartStore';
 
-const CHECKOUT_STEPS = ['Cart', 'Information', 'Payment'];
+const CHECKOUT_STEPS = [
+  { id: 0, name: 'Cart' },
+  { id: 1, name: 'Information' },
+  { id: 2, name: 'Payment' }
+];
 
 export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { 
@@ -379,6 +383,10 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
     }
   };
 
+  useEffect(() => {
+    setCurrentStep(0);
+  }, [items.length, isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -409,7 +417,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
                         <ArrowLeft className="w-5 h-5" />
                       </button>
                     )}
-                    <h2 className="text-xl font-bold">{CHECKOUT_STEPS[currentStep]}</h2>
+                    <h2 className="text-xl font-bold">{CHECKOUT_STEPS[currentStep].name}</h2>
                   </div>
                   <button 
                     onClick={onClose}
@@ -421,7 +429,7 @@ export default function Cart({ isOpen, onClose }: { isOpen: boolean; onClose: ()
 
                 <div className="flex px-4 pt-4">
                   {CHECKOUT_STEPS.map((step, index) => (
-                    <div key={step} className="flex-1 flex items-center">
+                    <div key={step.name} className="flex-1 flex items-center">
                       <div
                         className={`w-full h-2 rounded-full ${
                           index === 0 ? 'ml-0' : index === CHECKOUT_STEPS.length - 1 ? 'mr-0' : ''

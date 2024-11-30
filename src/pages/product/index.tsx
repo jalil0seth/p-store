@@ -6,6 +6,7 @@ import { useCartStore } from '../../store/cartStore';
 import ProductGallery from './ProductGallery';
 import ProductInfo from './ProductInfo';
 import ProductReviews from './ProductReviews'; // Import ProductReviews component
+import ProductCard from '../../components/ProductCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatPrice } from '../../utils/formatPrice';
 
@@ -22,18 +23,27 @@ interface ProductVariant {
 export default function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { selectedProduct, getProduct } = useProductStore();
+  const { selectedProduct, getProduct, products, fetchProducts } = useProductStore();
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const { addItem } = useCartStore();
   const [addedToCart, setAddedToCart] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isVariantSheetOpen, setIsVariantSheetOpen] = useState(false);
   const [showMobileVariants, setShowMobileVariants] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      getProduct(id);
-    }
-  }, [id, getProduct]);
+    const fetchData = async () => {
+      setIsLoading(true);
+      if (id) {
+        await getProduct(id);
+        await fetchProducts();
+      }
+      setIsLoading(false);
+    };
+    fetchData();
+    // Scroll to top when navigating to a product
+    window.scrollTo(0, 0);
+  }, [id, getProduct, fetchProducts]);
 
   useEffect(() => {
     if (selectedProduct?.variants) {
@@ -203,6 +213,30 @@ export default function ProductPage() {
             1: 2,
           }}
         />
+      </div>
+
+      {/* Related Products Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-2xl font-bold text-gray-900 mb-8">You May Also Like</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+          {!isLoading && products && (() => {
+            const availableProducts = products.filter(
+              product => product.id !== selectedProduct?.id && product.isAvailable === 1
+            );
+            
+            // If we have less than 4 products, we'll reuse them to fill the spots
+            const randomizedProducts = [...availableProducts]
+              .sort(() => Math.random() - 0.5);
+            
+            // Create an array of exactly 4 products, but only if we have at least one product
+            return randomizedProducts.length > 0 
+              ? Array(4).fill(null).map((_, index) => {
+                  const product = randomizedProducts[index % randomizedProducts.length];
+                  return <ProductCard key={`${product.id}-${index}`} product={product} />;
+                })
+              : null;
+          })()}
+        </div>
       </div>
 
       {/* Mobile Bottom Bar */}
