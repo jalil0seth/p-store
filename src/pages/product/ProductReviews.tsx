@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Star, X, AlertCircle, Filter } from 'lucide-react';
+import { Star, X, AlertCircle, Filter, ChevronDown } from 'lucide-react';
+import { Menu, Transition, Fragment } from '@headlessui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Review, reviews } from '../../data/reviews';
 
@@ -19,10 +20,28 @@ export default function ProductReviews({
   const [visibleReviews, setVisibleReviews] = useState(6);
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'highest' | 'lowest'>('newest');
+
+  // Shuffle function using Fisher-Yates algorithm
+  const shuffleArray = (array: Review[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Shuffle reviews on component mount and when filter/sort changes
+  const [shuffledReviews, setShuffledReviews] = useState<Review[]>([]);
+  
+  useEffect(() => {
+    setShuffledReviews(shuffleArray(reviews));
+  }, [reviews]);
 
   // Memoized filtered and sorted reviews
   const displayedReviews = useMemo(() => {
-    let filtered = [...reviews];
+    let filtered = [...shuffledReviews];
     
     // Filter by rating
     if (filterRating !== null) {
@@ -41,18 +60,17 @@ export default function ProductReviews({
     }
 
     // Sort reviews
-    return filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'highest':
-          return b.rating - a.rating;
-        case 'lowest':
-          return a.rating - b.rating;
-        case 'recent':
-        default:
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-      }
-    });
-  }, [sortBy, filterRating, searchTerm]);
+    switch (sortOrder) {
+      case 'newest':
+        return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      case 'highest':
+        return filtered.sort((a, b) => b.rating - a.rating);
+      case 'lowest':
+        return filtered.sort((a, b) => a.rating - b.rating);
+      default:
+        return filtered;
+    }
+  }, [shuffledReviews, filterRating, searchTerm, sortOrder]);
 
   const loadMore = () => {
     setVisibleReviews(prev => prev + 6);
@@ -90,35 +108,6 @@ export default function ProductReviews({
               alt="TrustPilot"
               className="h-6 sm:h-8"
             />
-          </div>
-
-          {/* Rating Bars */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-6">
-            {[5, 4, 3, 2, 1].map((rating) => (
-              <button
-                key={rating}
-                onClick={() => setFilterRating(filterRating === rating ? null : rating)}
-                className={`bg-[#00a06d] rounded p-2 transition-all hover:bg-[#008f62] ${
-                  filterRating === rating ? 'ring-2 ring-white' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span className="ml-1">{rating}</span>
-                  </div>
-                  <span>{Math.round((ratingBreakdown[rating] / totalReviews) * 100)}%</span>
-                </div>
-                <div className="w-full bg-[#008f62] rounded-full h-1.5">
-                  <div
-                    className="bg-white h-1.5 rounded-full"
-                    style={{
-                      width: `${((ratingBreakdown[rating] || 0) / totalReviews) * 100}%`,
-                    }}
-                  />
-                </div>
-              </button>
-            ))}
           </div>
         </div>
 
@@ -174,6 +163,51 @@ export default function ProductReviews({
               </motion.div>
             ))
           )}
+        </div>
+
+        {/* Sorting controls */}
+        <div className="flex items-center space-x-2 mb-4">
+          <Menu as="div" className="relative inline-block text-left">
+            <Menu.Button className="inline-flex items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+              Sort by
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Menu.Button>
+
+            <Transition
+              as={Fragment}
+              enter="transition ease-out duration-100"
+              enterFrom="transform opacity-0 scale-95"
+              enterTo="transform opacity-100 scale-100"
+              leave="transition ease-in duration-75"
+              leaveFrom="transform opacity-100 scale-100"
+              leaveTo="transform opacity-0 scale-95"
+            >
+              <Menu.Items className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                <div className="py-1">
+                  {[
+                    { label: 'Newest', value: 'newest' },
+                    { label: 'Highest rated', value: 'highest' },
+                    { label: 'Lowest rated', value: 'lowest' },
+                  ].map((option) => (
+                    <Menu.Item key={option.value}>
+                      {({ active }) => (
+                        <button
+                          onClick={() => setSortOrder(option.value as 'newest' | 'highest' | 'lowest')}
+                          className={`${
+                            active ? 'bg-gray-100' : ''
+                          } ${
+                            sortOrder === option.value ? 'font-medium' : ''
+                          } block w-full px-4 py-2 text-left text-sm text-gray-700`}
+                        >
+                          {option.label}
+                        </button>
+                      )}
+                    </Menu.Item>
+                  ))}
+                </div>
+              </Menu.Items>
+            </Transition>
+          </Menu>
         </div>
 
         {/* Load More Button */}

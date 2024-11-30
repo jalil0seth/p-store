@@ -63,23 +63,23 @@ export default function ProductInfo({
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{name}</h1>
         <div className="mt-2 flex flex-wrap items-center gap-4">
-          {rating && (
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-4 h-4 ${
-                    i < Math.floor(rating)
-                      ? 'text-yellow-400 fill-current'
-                      : 'text-gray-300'
-                  }`}
-                />
-              ))}
-              <span className="ml-2 text-sm text-gray-600">
-                ({reviews} reviews)
-              </span>
-            </div>
-          )}
+        <div className="flex items-center space-x-1">
+        <div className="flex items-center">
+                {[0, 1, 2, 3, 4].map((rating) => (
+                  <Star
+                    key={rating}
+                    className={`h-4 w-4 ${
+                      rating < 4.8
+                        ? 'text-yellow-400'
+                        : 'text-gray-300'
+                    }`}
+                    fill="currentColor"
+                  />
+                ))}
+              </div>
+                  <span className="text-sm font-semibold text-gray-900">4.8</span>
+                  <span className="text-sm font-medium text-gray-500">(2,630 reviews)</span>
+                </div>
           {category && (
             <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
               {category}

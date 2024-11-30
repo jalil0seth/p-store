@@ -212,34 +212,6 @@ export default function ProductPage() {
         className="fixed bottom-0 left-0 z-20 w-full border-t bg-white px-4 py-3 lg:hidden safe-area-bottom"
       >
         <div className="mx-auto flex max-w-md flex-col space-y-2">
-          {/* Reviews Summary */}
-          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-            <button 
-              onClick={() => {
-                const reviewsSection = document.getElementById('reviews');
-                reviewsSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="flex items-center space-x-2"
-            >
-              <div className="flex items-center">
-                {[0, 1, 2, 3, 4].map((rating) => (
-                  <Star
-                    key={rating}
-                    className={`h-4 w-4 ${
-                      rating < 4.8
-                        ? 'text-yellow-400'
-                        : 'text-gray-300'
-                    }`}
-                    fill="currentColor"
-                  />
-                ))}
-              </div>
-              <div className="flex items-center space-x-1">
-                <span className="text-sm font-semibold text-gray-900">4.8</span>
-                <span className="text-sm font-medium text-gray-500">(2.3k reviews)</span>
-              </div>
-            </button>
-          </div>
 
           {/* Price and Variant Selection */}
           <div className="space-y-3">

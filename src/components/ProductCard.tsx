@@ -160,13 +160,15 @@ export default function ProductCard({ product, layout = true }: ProductCardProps
               {product.name}
             </h3>
           </Link>
-          <div className="text-sm text-gray-500 mt-1">
-            {selectedVariant?.billingCycle === 'monthly' ? 'Monthly Plan' : 
-             selectedVariant?.billingCycle === 'annual' ? 'Annual Plan' : 'Basic'}
-          </div>
+          {variants.length > 1 && (
+            <div className="text-sm text-gray-500 mt-1">
+              {selectedVariant?.billingCycle === 'monthly' ? 'Monthly Plan' : 
+               selectedVariant?.billingCycle === 'annual' ? 'Annual Plan' : 'Basic'}
+            </div>
+          )}
         </div>
 
-        {variants.length > 0 && (
+        {variants.length > 1 && (
           <div className="mb-3">
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-primary-500 focus:border-primary-500 bg-white"
