@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, LogOut } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Menu, X } from 'lucide-react';
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAdmin, logout: signOut } = useAuthStore();
   const { items, setIsOpen } = useCartStore();
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -32,50 +34,44 @@ export default function Header() {
     >
       <nav className="max-w-[80rem] mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Left side */}
-          <div className="flex items-center gap-6">
-            <Link 
-              to="/" 
-              className="text-xl font-bold tracking-tight hover:text-primary-500 transition-colors"
-            >
-              SoftwareStore
-            </Link>
+          {/* Logo */}
+          <Link 
+            to="/" 
+            className="text-xl font-bold tracking-tight hover:text-primary-500 transition-colors"
+          >
+            SoftwareStore
+          </Link>
 
-            <Link 
-              to="/products" 
-              className="text-gray-600 hover:text-primary-600 transition-colors"
-            >
-              Products
-            </Link>
-          </div>
-
-          {/* Right side */}
+          {/* Right Side - User Area, Cart and Mobile Menu */}
           <div className="flex items-center gap-4">
-            {user ? (
-              <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-4">
+              {user ? (
+                <>
+                  <Link
+                    to={isAdmin ? "/admin" : "/dashboard"}
+                    className="text-gray-600 hover:text-primary-600 transition-colors"
+                  >
+                    {isAdmin ? 'Admin Area' : 'My Account'}
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </>
+              ) : (
                 <Link
-                  to={isAdmin ? "/admin" : "/dashboard"}
-                  className="text-gray-600 hover:text-primary-600 transition-colors"
+                  to="/signin"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-colors"
                 >
-                  {isAdmin ? 'Admin Area' : 'My Account'}
+                  <User className="w-4 h-4" />
+                  <span>Sign In</span>
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/signin"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-full transition-colors"
-              >
-                <User className="w-4 h-4" />
-                <span>Sign In</span>
-              </Link>
-            )}
+              )}
+            </div>
+
             <button
               onClick={() => setIsOpen(true)}
               className="relative p-2 text-gray-600 hover:text-primary-600 transition-colors"
@@ -88,8 +84,66 @@ export default function Header() {
                 </span>
               )}
             </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 text-gray-600 hover:text-primary-600 transition-colors"
+              aria-label="Menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden overflow-hidden"
+            >
+              <div className="py-4 space-y-3 border-t mt-2">
+                {user ? (
+                  <>
+                    <Link
+                      to={isAdmin ? "/admin" : "/dashboard"}
+                      className="block px-2 py-2 text-gray-600 hover:text-primary-600"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {isAdmin ? 'Admin Area' : 'My Account'}
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/signin"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 rounded-lg transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Sign In</span>
+                  </Link>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </header>
   );

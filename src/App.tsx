@@ -17,7 +17,7 @@ import Cart from './components/Cart';
 // Lazy load non-critical components
 const HomePage = lazy(() => import('./pages/HomePage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
-const ProductPage = lazy(() => import('./pages/ProductPage'));
+const ProductPage = lazy(() => import('./pages/product'));
 const SignInPage = lazy(() => import('./pages/SignInPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 
@@ -87,13 +87,13 @@ function AppContent({ theme }: { theme: string }) {
   const { isAuthenticated, user } = useAuthStore();
   const { isOpen: isCartOpen, setIsOpen: setIsCartOpen } = useCartStore();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isProductPage = location.pathname.startsWith('/product/');
 
   return (
     <div className={`min-h-screen ${theme}`}>
       {!isAdminRoute && (
         <>
           <Header />
-          <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         </>
       )}
       <Suspense fallback={<PageLoader />}>
@@ -130,8 +130,11 @@ function AppContent({ theme }: { theme: string }) {
           />
         </Routes>
       </Suspense>
+      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
       {!isAdminRoute && <Footer />}
-      {!isAdminRoute && <MobileCTA />}
+      {!isAdminRoute && !isProductPage && (
+        <MobileCTA />
+      )}
     </div>
   );
 }

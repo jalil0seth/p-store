@@ -22,6 +22,7 @@
     "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-switch": "^1.1.1",
     "@radix-ui/react-toast": "^1.2.2",
+    "@tailwindcss/typography": "^0.5.15",
     "@types/next": "^8.0.7",
     "@types/node-fetch": "^2.6.12",
     "@types/react-beautiful-dnd": "^13.1.8",
@@ -44,6 +45,7 @@
     "react-router-dom": "^6.22.3",
     "shadcn-ui": "^0.9.3",
     "sonner": "^1.7.0",
+    "swiper": "^11.1.15",
     "tailwind-merge": "^2.5.5",
     "zustand": "^4.5.2"
   },
