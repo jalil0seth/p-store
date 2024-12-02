@@ -87,11 +87,27 @@ export class LLMService {
 
     private extractJsonFromMarkdown(content: string): any {
         try {
-            // Remove markdown code block markers and find JSON content
-            const jsonMatch = content.replace(/```json\n|\n```/g, '').match(/\{[\s\S]*\}/);
+            // First trim the overall content
+            const trimmedContent = content.trim();
+            
+            // Remove markdown code block markers
+            const withoutCodeBlocks = trimmedContent
+                .replace(/^```json\s*/, '')  // Start of JSON block
+                .replace(/\s*```$/, '')      // End of JSON block
+                .trim();
+            
+            // Remove any control characters
+            const cleanContent = withoutCodeBlocks
+                .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
+                .trim();
+            
+            // Find the JSON object
+            const jsonMatch = cleanContent.match(/^\{[\s\S]*\}$/);
             if (!jsonMatch) {
-                throw new Error('No JSON content found in response');
+                console.error('Content after cleaning:', cleanContent);
+                throw new Error('No valid JSON object found in response');
             }
+            
             return JSON.parse(jsonMatch[0]);
         } catch (error) {
             console.error('Failed to extract JSON from markdown:', error);
@@ -221,6 +237,81 @@ Please ensure:
                 isAvailable: 0,
                 slug: this.generateSlug(defaultName)
             };
+        }
+    }
+
+    public async generatePageContent(pageName: string, storeName: string): Promise<{
+        title: string;
+        slug: string;
+        content: string;
+        meta_title: string;
+        meta_description: string;
+    }> {
+        const systemPrompt = `You are an expert e-commerce content writer and SEO specialist who creates comprehensive, engaging content for online stores. 
+Your task is to generate detailed, well-structured content that follows these guidelines:
+
+1. Content Structure:
+   - Use proper HTML semantic tags (h1, h2, h3, p, ul, etc.)
+   - Create multiple sections with clear headings
+   - Include at least 1000 words of content
+   - Add relevant calls-to-action throughout the content
+
+2. Content Elements to Include:
+   - An engaging introduction that hooks the reader
+   - Multiple detailed sections explaining different aspects
+   - Benefits and features where relevant
+   - FAQs section with at least 5 common questions
+   - Customer-focused content that addresses pain points
+   - Clear value propositions
+   - Trust-building elements (guarantees, policies, etc.)
+
+3. SEO Requirements:
+   - Title should be clear, compelling, and SEO-optimized
+   - Meta title should be max 60 characters and include main keyword
+   - Meta description should be 150-160 characters, include call-to-action
+   - Use semantic HTML structure for better SEO
+   - Include relevant keywords naturally in the content
+
+4. Writing Style:
+   - Professional yet conversational tone
+   - Short paragraphs for better readability
+   - Use bullet points and lists where appropriate
+   - Include engaging subheadings
+   - Focus on benefits while explaining features`;
+
+        const userContent = `Generate comprehensive content for a "${pageName}" page for "${storeName}".
+
+The response should be in this JSON format:
+{
+    "title": "engaging, SEO-friendly title",
+    "slug": "url-friendly-slug",
+    "content": "detailed HTML content with proper semantic structure",
+    "meta_title": "compelling title under 60 chars",
+    "meta_description": "engaging description 150-160 chars"
+}
+
+Make sure to:
+1. Write at least 1000 words of high-quality content
+2. Include multiple sections with clear headings
+3. Add a comprehensive FAQ section
+4. Use proper HTML formatting with semantic tags
+5. Make the content engaging and valuable for customers
+6. Include trust-building elements and calls-to-action
+7. Optimize all content for both users and search engines`;
+
+        try {
+            const response = await this.makeRequest(systemPrompt, userContent);
+            
+            return {
+                title: response.title || pageName,
+                slug: this.generateSlug(response.title || pageName),
+                content: response.content || `<h1>${pageName}</h1>\n<p>Welcome to our ${pageName} page.</p>`,
+                meta_title: response.meta_title || `${pageName} - ${storeName}`,
+                meta_description: response.meta_description || `Learn more about ${pageName} at ${storeName}. Find detailed information and resources.`
+            };
+        } catch (error) {
+            console.error('Error generating page content:', error);
+            throw error;
         }
     }
 }

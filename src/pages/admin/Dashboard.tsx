@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiBox, FiUsers, FiDollarSign, FiShoppingCart } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { PocketBaseService } from '../../services/PocketBaseService';
+import { toast } from 'sonner';
 
 interface StatCardProps {
   title: string;
@@ -51,26 +52,38 @@ const Dashboard: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const pb = PocketBaseService.getInstance().pb;
+        const pbService = PocketBaseService.getInstance();
+        if (!pbService || !pbService.pb) {
+          throw new Error('PocketBase service not initialized');
+        }
 
-        // Get total products
-        const productsResponse = await pb.collection('store_products').getList(1, 1);
+        const pb = pbService.pb;
 
-        // Get total users
-        const usersResponse = await pb.collection('store_users').getList(1, 1);
+        const [productsResponse, usersResponse, ordersResponse, allOrders] = await Promise.all([
+          pb.collection('store_products').getList(1, 1).catch(() => ({ totalItems: 0 })),
+          pb.collection('store_users').getList(1, 1).catch(() => ({ totalItems: 0 })),
+          pb.collection('store_orders').getList(1, 1).catch(() => ({ totalItems: 0 })),
+          pb.collection('store_orders').getFullList({
+            filter: 'status = "paid"'
+          }).catch(() => [])
+        ]);
 
         if (!isMounted) return;
+
+        const totalRevenue = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
 
         setStats({
           products: productsResponse.totalItems,
           users: usersResponse.totalItems,
-          revenue: 0, // Implement when orders are added
-          orders: 0, // Implement when orders are added
+          revenue: totalRevenue,
+          orders: ordersResponse.totalItems,
         });
       } catch (err) {
         if (!isMounted) return;
-        console.error('Error fetching stats:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch dashboard stats');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch dashboard stats';
+        console.error('Error fetching stats:', errorMessage);
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         if (isMounted) {
           setLoading(false);

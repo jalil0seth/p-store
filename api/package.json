@@ -1,0 +1,13 @@
+{
+  "name": "store-api",
+  "version": "1.0.0",
+  "description": "Store API for handling orders",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --experimental-modules orders/create.js"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.0"
+  }
+}

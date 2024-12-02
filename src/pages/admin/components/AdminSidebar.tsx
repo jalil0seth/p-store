@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiMenu, FiX, FiUsers, FiBox, FiHome, FiSettings, FiLogOut, FiArrowLeft } from 'react-icons/fi';
+import { FiMenu, FiX, FiUsers, FiBox, FiHome, FiSettings, FiLogOut, FiArrowLeft, FiFileText, FiTool, FiShoppingBag } from 'react-icons/fi';
 import { useAuthStore } from '@/store/authStore';
 
 interface AdminSidebarProps {
@@ -16,7 +16,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onToggle }) => {
   const menuItems = [
     { path: '/admin', icon: FiHome, label: 'Dashboard' },
     { path: '/admin/products', icon: FiBox, label: 'Products' },
+    { path: '/admin/orders', icon: FiShoppingBag, label: 'Orders' },
     { path: '/admin/users', icon: FiUsers, label: 'Users' },
+    { path: '/admin/pages', icon: FiFileText, label: 'Pages' },
+    { path: '/admin/config', icon: FiTool, label: 'Store Config' },
     { path: '/admin/settings', icon: FiSettings, label: 'Settings' },
   ];
 

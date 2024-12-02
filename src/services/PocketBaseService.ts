@@ -4,7 +4,8 @@ export class PocketBaseService {
     private token: string = '';
     private isAdmin: boolean = false;
     private currentUser: any = null;
-    
+    private pb: any;
+
     private constructor() {
         this.loadSession();
     }
@@ -42,15 +43,17 @@ export class PocketBaseService {
         }
     }
 
-    private getHeaders() {
+    private getHeaders(forceAdmin = false) {
+        const useAdmin = forceAdmin || this.isAdmin;
         return {
-            'Authorization': this.token ? `${this.isAdmin ? 'Admin' : 'Bearer'} ${this.token}` : '',
+            'Authorization': this.token ? `Bearer ${this.token}` : '',
             'Content-Type': 'application/json'
         };
     }
 
     private async authenticate() {
         try {
+            console.log('Authenticating as admin...');
             const response = await fetch(`${PocketBaseService.BASE_URL}/api/admins/auth-with-password`, {
                 method: 'POST',
                 headers: {
@@ -62,7 +65,13 @@ export class PocketBaseService {
                 })
             });
 
+            if (!response.ok) {
+                console.error('Admin auth failed:', await response.text());
+                throw new Error('Admin auth failed');
+            }
+
             const data = await response.json();
+            console.log('Admin auth response:', data);
             if (data.token) {
                 this.token = data.token;
                 this.isAdmin = true;
@@ -72,12 +81,17 @@ export class PocketBaseService {
             throw new Error('No token in response');
         } catch (error) {
             console.error('Failed to authenticate:', error);
-            return false;
+            throw error;
         }
     }
 
-    private async ensureAuthenticated() {
-        if (!this.token) {
+    private async ensureAuthenticated(forceAdmin = false) {
+        if (!this.token || (forceAdmin && !this.isAdmin)) {
+            console.log('Need to authenticate. Current state:', { 
+                hasToken: !!this.token, 
+                isAdmin: this.isAdmin, 
+                forceAdmin 
+            });
             await this.authenticate();
         }
     }
@@ -187,18 +201,14 @@ export class PocketBaseService {
     async getProduct(id: string) {
         try {
             await this.ensureAuthenticated();
-
+            
             const response = await fetch(
                 `${PocketBaseService.BASE_URL}/api/collections/store_products/records/${id}`,
                 { headers: this.getHeaders() }
             );
 
             if (!response.ok) {
-                const errorData = await response.json();
-                if (response.status === 404) {
-                    return null;
-                }
-                throw new Error(`Failed to fetch product: ${JSON.stringify(errorData)}`);
+                throw new Error('Failed to fetch product');
             }
 
             return await response.json();
@@ -210,152 +220,66 @@ export class PocketBaseService {
 
     async createProduct(data: any) {
         try {
-            // For new products, always set featured and isAvailable to 0
-            const requestData = {
-                ...data,
-                featured: 0,
-                isAvailable: 0
-            };
-
-            console.log('Creating product with data:', requestData);
-
+            await this.ensureAuthenticated(true);
+            
             const response = await fetch(
                 `${PocketBaseService.BASE_URL}/api/collections/store_products/records`,
                 {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
+                    headers: this.getHeaders(true),
+                    body: JSON.stringify(data)
                 }
             );
 
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Server error response:', errorData);
-                console.error('Full error data:', JSON.stringify(errorData, null, 2));
-                throw new Error(errorData.message || 'Failed to create product');
+                throw new Error('Failed to create product');
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Error in createProduct:', error);
+            console.error('Failed to create product:', error);
             throw error;
         }
     }
 
     async updateProduct(id: string, data: any) {
         try {
-            await this.ensureAuthenticated();
-
-            // First verify the product exists
-            const product = await this.getProduct(id);
-            if (!product) {
-                throw new Error(`Product with ID ${id} not found`);
-            }
-
-            // Validate required fields
-            const requiredFields = ['name', 'brand', 'category', 'type', 'featured', 'isAvailable'];
-            console.log('Data received in updateProduct:', data);
-            console.log('Featured value:', data.featured, typeof data.featured);
-            const missingFields = requiredFields.filter(field => {
-                const value = data[field];
-                console.log(`Field ${field}:`, value, typeof value);
-                return value === undefined || value === null;
-            });
-            if (missingFields.length > 0) {
-                throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-            }
-
-            // Convert boolean values to integers and clean the data
-            const cleanData = {
-                ...data,
-                isAvailable: Number(data.isAvailable || 0), // Default to 0 if undefined
-                featured: Number(data.featured || 0), // Default to 0 if undefined
-                variants: typeof data.variants === 'string' ? data.variants : JSON.stringify(data.variants || []),
-                metadata: typeof data.metadata === 'string' ? data.metadata : JSON.stringify(data.metadata || {}),
-                images: typeof data.images === 'string' ? data.images : JSON.stringify(data.images || [])
-            };
-
-            console.log('Clean data being sent to API:', cleanData);
-            console.log('Featured value in cleanData:', cleanData.featured, typeof cleanData.featured);
-            console.log('Full request payload:', JSON.stringify(cleanData, null, 2));
-
-            // Validate against schema requirements
-            if (cleanData.featured === undefined || cleanData.featured === null || 
-                cleanData.featured < 0 || cleanData.featured > 1) {
-                throw new Error('Featured must be a number between 0 and 1');
-            }
-
-            console.log('Request data with schema validation:', cleanData);
-            console.log('Featured value type:', typeof cleanData.featured);
-
+            await this.ensureAuthenticated(true);
+            
             const response = await fetch(
                 `${PocketBaseService.BASE_URL}/api/collections/store_products/records/${id}`,
                 {
                     method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${this.token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(cleanData)
+                    headers: this.getHeaders(true),
+                    body: JSON.stringify(data)
                 }
             );
 
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Server error response:', errorData);
-                console.error('Full error data:', JSON.stringify(errorData, null, 2));
-                
-                // If there are specific field validation errors, include them in the error message
-                if (errorData.data) {
-                    const fieldErrors = Object.entries(errorData.data)
-                        .map(([field, error]) => `${field}: ${error}`)
-                        .join(', ');
-                    throw new Error(`Validation error: ${fieldErrors}`);
-                }
-                
-                if (response.status === 404) {
-                    throw new Error(`Product with ID ${id} not found`);
-                }
-                throw new Error(errorData.message || 'Failed to update product');
+                throw new Error('Failed to update product');
             }
 
             return await response.json();
         } catch (error) {
-            console.error('Error in updateProduct:', error);
+            console.error('Failed to update product:', error);
             throw error;
         }
     }
 
-    async deleteProduct(id: string | any) {
+    async deleteProduct(id: string) {
         try {
-            // Ensure we have a string ID
-            const productId = typeof id === 'string' 
-                ? id 
-                : (id as any).id;
-
-            if (!productId) {
-                throw new Error('Invalid product ID');
-            }
-
-            await this.ensureAuthenticated();
-
-            console.log('Attempting to delete product with ID:', productId);
-
+            await this.ensureAuthenticated(true);
+            
             const response = await fetch(
-                `${PocketBaseService.BASE_URL}/api/collections/store_products/records/${productId}`,
+                `${PocketBaseService.BASE_URL}/api/collections/store_products/records/${id}`,
                 {
                     method: 'DELETE',
-                    headers: this.getHeaders()
+                    headers: this.getHeaders(true)
                 }
             );
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('Delete product error response:', errorData);
-                throw new Error(`Failed to delete product: ${errorData.message || 'Unknown error'}`);
+                throw new Error('Failed to delete product');
             }
 
             return true;
@@ -378,6 +302,74 @@ export class PocketBaseService {
         this.isAdmin = false;
         this.currentUser = null;
         this.saveSession();
+    }
+
+    async getOrders() {
+        console.log('PocketBaseService: Getting orders with admin auth');
+        try {
+            await this.ensureAuthenticated(true);
+            console.log('PocketBaseService: Admin auth status:', this.isAdmin);
+            console.log('PocketBaseService: Token:', this.token);
+            
+            const headers = this.getHeaders(true);
+            console.log('PocketBaseService: Request headers:', headers);
+            
+            const url = `${PocketBaseService.BASE_URL}/api/collections/store_orders/records?sort=-created`;
+            console.log('PocketBaseService: Fetching from URL:', url);
+            
+            const response = await fetch(url, { headers });
+
+            console.log('PocketBaseService: Response status:', response.status);
+            const responseText = await response.text();
+            console.log('PocketBaseService: Response text:', responseText);
+
+            if (!response.ok) {
+                console.error('Failed to fetch orders:', responseText);
+                throw new Error('Failed to fetch orders');
+            }
+
+            const data = JSON.parse(responseText);
+            console.log('PocketBaseService: Successfully parsed orders:', data);
+            return data.items || [];
+        } catch (error) {
+            console.error('PocketBaseService: Error fetching orders:', error);
+            throw error;
+        }
+    }
+
+    async updateOrder(id: string, updates: any) {
+        console.log('PocketBaseService: Updating order:', id, updates);
+        try {
+            await this.ensureAuthenticated(true);
+            
+            const updateData = { ...updates };
+            if (updates.items && typeof updates.items !== 'string') {
+                updateData.items = JSON.stringify(updates.items);
+            }
+            if (updates.shipping_address && typeof updates.shipping_address !== 'string') {
+                updateData.shipping_address = JSON.stringify(updates.shipping_address);
+            }
+
+            const response = await fetch(
+                `${PocketBaseService.BASE_URL}/api/collections/store_orders/records/${id}`,
+                {
+                    method: 'PATCH',
+                    headers: this.getHeaders(true),
+                    body: JSON.stringify(updateData)
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to update order');
+            }
+
+            const record = await response.json();
+            console.log('PocketBaseService: Successfully updated order:', record);
+            return record;
+        } catch (error) {
+            console.error('PocketBaseService: Error updating order:', error);
+            throw error;
+        }
     }
 }
 

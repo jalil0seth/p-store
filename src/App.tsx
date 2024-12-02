@@ -30,6 +30,9 @@ const AdminEditProduct = lazy(() => import('./pages/admin/products/edit'));
 const AdminUsersPage = lazy(() => import('./pages/admin/users'));
 const AdminAddUser = lazy(() => import('./pages/admin/users/add'));
 const AdminEditUser = lazy(() => import('./pages/admin/users/edit'));
+const AdminPagesPage = lazy(() => import('./pages/admin/PagesPage'));
+const AdminStoreConfigPage = lazy(() => import('./pages/admin/StoreConfigPage'));
+const AdminOrdersPage = lazy(() => import('./pages/admin/orders'));
 
 export function App() {
   const { theme } = useTheme();
@@ -123,6 +126,9 @@ function AppContent({ theme }: { theme: string }) {
                     <Route path="/users" element={<AdminUsersPage />} />
                     <Route path="/users/add" element={<AdminAddUser />} />
                     <Route path="/users/edit/:id" element={<AdminEditUser />} />
+                    <Route path="/pages" element={<AdminPagesPage />} />
+                    <Route path="/config" element={<AdminStoreConfigPage />} />
+                    <Route path="/orders" element={<AdminOrdersPage />} />
                   </Routes>
                 </AdminLayout>
               </ProtectedRoute>
